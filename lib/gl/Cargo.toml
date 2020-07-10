@@ -1,17 +1,14 @@
 [package]
 authors = ["Aphosis <alexy.long@orange.fr>"]
 edition = "2018"
-name = "palantir"
+name = "gl"
 version = "0.1.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[build-dependencies]
-walkdir = "2.3.1"
-
 [dependencies]
-gl = {path = "lib/gl"}
-sdl2 = {version = "0.34.2", features = ["bundled", "static-link"]}
+[build-dependencies]
+gl_generator = "0.14.0"
 
 [features]
-gl_debug = ["gl/debug"]
+debug = []
