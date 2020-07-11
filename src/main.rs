@@ -2,7 +2,7 @@ pub mod render_gl;
 pub mod resources;
 
 use cgmath::prelude::*;
-use cgmath::{Matrix4, Vector3};
+use cgmath::{Matrix4, Vector2, Vector3};
 use render_gl::{Camera, Light, Mesh, Renderer, Vertex};
 use resources::Resources;
 use sdl2::event::{Event, WindowEvent};
@@ -127,17 +127,29 @@ fn main() {
                     const ORBIT_SENSITIVITY: f32 = 0.01;
                     const ZOOM_SENSITIVITY: f32 = 0.01;
 
-                    let y_angle = xrel as f32 * ORBIT_SENSITIVITY;
-                    let x_angle = yrel as f32 * ORBIT_SENSITIVITY;
-                    let zoom_amount = xrel as f32 * ZOOM_SENSITIVITY;
-
                     if mouse_state.left() {
+                        let y_angle = xrel as f32 * ORBIT_SENSITIVITY;
+                        let x_angle = yrel as f32 * ORBIT_SENSITIVITY;
                         camera.rotate(Vector3::unit_y(), y_angle);
                         camera.rotate(Vector3::unit_x(), x_angle);
                     } else if mouse_state.right() {
-                        camera.zoom(zoom_amount);
+                        let mouse_vector = Vector2::new(xrel as f32, yrel as f32);
+                        let mouse_vector_normalized = mouse_vector.clone().normalize();
+                        let mut direction = mouse_vector_normalized.dot(Vector2::unit_x())
+                            + mouse_vector_normalized.dot(-Vector2::unit_y());
+                        if direction > 0.0 {
+                            direction = 1.0;
+                        } else if direction < 0.0 {
+                            direction = -1.0;
+                        }
+                        let zoom_amount = direction * mouse_vector.magnitude() * ZOOM_SENSITIVITY;
+                        if !zoom_amount.is_nan() {
+                            camera.zoom(zoom_amount);
+                        }
                     }
                 }
+                Event::MouseWheel { y, .. } => camera.zoom(y as f32),
+
                 _ => {}
             }
         }
