@@ -1,8 +1,9 @@
 pub mod render_gl;
 pub mod resources;
 
-use nalgebra::{Matrix4, Vector3};
-use render_gl::{Camera, Mesh, Renderer, Vertex};
+use cgmath::prelude::*;
+use cgmath::{Matrix4, Vector3};
+use render_gl::{Camera, Light, Mesh, Renderer, Vertex};
 use resources::Resources;
 use std::path::Path;
 
@@ -42,15 +43,41 @@ fn main() {
 
     #[rustfmt::skip]
     let vertices: Vec<Vertex> = vec![
-        Vertex { position: Vector3::new(0.5, 0.5, 0.5), color: Vector3::new(1.0, 0.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, 0.5, 0.5), color: Vector3::new(0.0, 1.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, 0.5, -0.5), color: Vector3::new(0.0, 0.0, 1.0) },
-        Vertex { position: Vector3::new(0.5, 0.5, -0.5), color: Vector3::new(1.0, 1.0, 0.0) },
+        // Top
+        Vertex { position: Vector3::new(0.5, 0.5, 0.5), color: Vector3::new(0.0, 1.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0) },
+        Vertex { position: Vector3::new(-0.5, 0.5, 0.5), color: Vector3::new(0.0, 1.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0) },
+        Vertex { position: Vector3::new(-0.5, 0.5, -0.5), color: Vector3::new(0.0, 1.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0) },
+        Vertex { position: Vector3::new(0.5, 0.5, -0.5), color: Vector3::new(0.0, 1.0, 0.0), normal: Vector3::new(0.0, 1.0, 0.0) },
 
-        Vertex { position: Vector3::new(0.5, -0.5, 0.5), color: Vector3::new(0.0, 1.0, 1.0) },
-        Vertex { position: Vector3::new(-0.5, -0.5, 0.5), color: Vector3::new(1.0, 0.0, 1.0) },
-        Vertex { position: Vector3::new(-0.5, -0.5, -0.5), color: Vector3::new(1.0, 1.0, 1.0) },
-        Vertex { position: Vector3::new(0.5, -0.5, -0.5), color: Vector3::new(0.0, 0.0, 0.0) },
+        // Bottom
+        Vertex { position: Vector3::new(0.5, -0.5, 0.5), color: Vector3::new(1.0, 0.0, 1.0), normal: Vector3::new(0.0, -1.0, 0.0) },
+        Vertex { position: Vector3::new(-0.5, -0.5, 0.5), color: Vector3::new(1.0, 0.0, 1.0), normal: Vector3::new(0.0, -1.0, 0.0) },
+        Vertex { position: Vector3::new(-0.5, -0.5, -0.5), color: Vector3::new(1.0, 0.0, 1.0), normal: Vector3::new(0.0, -1.0, 0.0) },
+        Vertex { position: Vector3::new(0.5, -0.5, -0.5), color: Vector3::new(1.0, 0.0, 1.0), normal: Vector3::new(0.0, -1.0, 0.0) },
+
+        // Right
+        Vertex { position: Vector3::new(0.5, 0.5, 0.5), color: Vector3::new(1.0, 0.0, 0.0), normal: Vector3::new(1.0, 0.0, 0.0) },
+        Vertex { position: Vector3::new(0.5, 0.5, -0.5), color: Vector3::new(1.0, 0.0, 0.0), normal: Vector3::new(1.0, 0.0, 0.0) },
+        Vertex { position: Vector3::new(0.5, -0.5, -0.5), color: Vector3::new(1.0, 0.0, 0.0), normal: Vector3::new(1.0, 0.0, 0.0) },
+        Vertex { position: Vector3::new(0.5, -0.5, 0.5), color: Vector3::new(1.0, 0.0, 0.0), normal: Vector3::new(1.0, 0.0, 0.0) },
+
+        // Left
+        Vertex { position: Vector3::new(-0.5, 0.5, 0.5), color: Vector3::new(0.0, 1.0, 1.0), normal: Vector3::new(-1.0, 0.0, 0.0) },
+        Vertex { position: Vector3::new(-0.5, 0.5, -0.5), color: Vector3::new(0.0, 1.0, 1.0), normal: Vector3::new(-1.0, 0.0, 0.0) },
+        Vertex { position: Vector3::new(-0.5, -0.5, -0.5), color: Vector3::new(0.0, 1.0, 1.0), normal: Vector3::new(-1.0, 0.0, 0.0) },
+        Vertex { position: Vector3::new(-0.5, -0.5, 0.5), color: Vector3::new(0.0, 1.0, 1.0), normal: Vector3::new(-1.0, 0.0, 0.0) },
+
+        // Front
+        Vertex { position: Vector3::new(0.5, 0.5, -0.5), color: Vector3::new(1.0, 1.0, 0.0), normal: Vector3::new(0.0, 0.0, -1.0) },
+        Vertex { position: Vector3::new(-0.5, 0.5, -0.5), color: Vector3::new(1.0, 1.0, 0.0), normal: Vector3::new(0.0, 0.0, -1.0) },
+        Vertex { position: Vector3::new(-0.5, -0.5, -0.5), color: Vector3::new(1.0, 1.0, 0.0), normal: Vector3::new(0.0, 0.0, -1.0) },
+        Vertex { position: Vector3::new(0.5, -0.5, -0.5), color: Vector3::new(1.0, 1.0, 0.0), normal: Vector3::new(0.0, 0.0, -1.0) },
+
+        // Back
+        Vertex { position: Vector3::new(0.5, 0.5, 0.5), color: Vector3::new(0.0, 0.0, 1.0), normal: Vector3::new(0.0, 0.0, 1.0) },
+        Vertex { position: Vector3::new(-0.5, 0.5, 0.5), color: Vector3::new(0.0, 0.0, 1.0), normal: Vector3::new(0.0, 0.0, 1.0) },
+        Vertex { position: Vector3::new(-0.5, -0.5, 0.5), color: Vector3::new(0.0, 0.0, 1.0), normal: Vector3::new(0.0, 0.0, 1.0) },
+        Vertex { position: Vector3::new(0.5, -0.5, 0.5), color: Vector3::new(0.0, 0.0, 1.0), normal: Vector3::new(0.0, 0.0, 1.0) },
     ];
     #[rustfmt::skip]
     let indices = vec![
@@ -58,19 +85,24 @@ fn main() {
         0, 2, 3,
         4, 5, 6, // bot
         4, 6, 7,
-        0, 3, 7, // right
-        0, 7, 4,
-        2, 1, 5, // left
-        2, 5, 6,
-        3, 2, 6, // front
-        3, 6, 7,
-        1, 0, 4, // back
-        1, 4, 5,
+        8, 9, 10, // right
+        8, 10, 11,
+        12, 13, 14, // left
+        12, 14, 15,
+        16, 17, 18, // front
+        16, 18, 19,
+        20, 21, 22, // back
+        20, 22, 23,
     ];
     let mesh = Mesh::new(&gl, vertices, indices);
     let model_matrix = Matrix4::<f32>::identity();
 
     let mut camera = Camera::from_focal_length(50.0, 36.0, 0.01, 100.0);
+    let mut light = Light {
+        matrix: Matrix4::from_translation(Vector3::new(1.0, 1.0, 1.0)),
+        color: Vector3::new(1.0, 1.0, 1.0),
+        power: 1.0,
+    };
 
     'main: loop {
         let mouse_state = sdl2::mouse::MouseState::new(&event_pump);
@@ -86,8 +118,8 @@ fn main() {
                     let zoom_amount = xrel as f32 * ZOOM_SENSITIVITY;
 
                     if mouse_state.left() {
-                        camera.rotate(Vector3::y_axis(), y_angle);
-                        camera.rotate(Vector3::x_axis(), x_angle);
+                        camera.rotate(Vector3::unit_y(), y_angle);
+                        camera.rotate(Vector3::unit_x(), x_angle);
                     } else if mouse_state.right() {
                         camera.zoom(zoom_amount);
                     }
@@ -96,13 +128,26 @@ fn main() {
             }
         }
 
+        light.matrix = camera.view_matrix().inverse_transform().unwrap()
+            * Matrix4::from_translation(Vector3::new(-2.0, 2.0, 1.0));
+
         shader_program.set_uniform_matrix4(String::from("model"), &model_matrix);
         shader_program.set_uniform_matrix4(String::from("view"), &camera.view_matrix());
         shader_program.set_uniform_matrix4(String::from("projection"), &camera.projection_matrix());
+        shader_program.set_uniform_vector3(
+            String::from("light_position"),
+            &position_from_matrix(&light.matrix),
+        );
+        shader_program.set_uniform_vector3(String::from("light_color"), &light.color);
+        shader_program.set_uniform_float(String::from("light_power"), light.power);
 
         Renderer::clear(&gl, 0.3, 0.3, 0.5);
         Renderer::draw(&gl, &mesh, &shader_program, gl::TRIANGLES);
 
         window.gl_swap_window();
     }
+}
+
+fn position_from_matrix(matrix: &Matrix4<f32>) -> Vector3<f32> {
+    Vector3::new(matrix.w.x, matrix.w.y, matrix.w.z)
 }

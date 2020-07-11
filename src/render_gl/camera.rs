@@ -1,4 +1,5 @@
-use nalgebra::{Matrix4, Perspective3, Rotation3, Translation3, Unit, Vector3};
+use cgmath::prelude::*;
+use cgmath::{Matrix4, PerspectiveFov, Rad, Vector3};
 // use std::primitive::f32;
 
 pub struct Camera {
@@ -37,19 +38,26 @@ impl Camera {
         self.local_matrix * self.target_matrix
     }
     pub fn projection_matrix(&self) -> Matrix4<f32> {
-        Perspective3::new(1.0, self.fov, self.near_clip, self.far_clip).to_homogeneous()
+        PerspectiveFov {
+            fovy: Rad(self.fov),
+            aspect: 1.0,
+            near: self.near_clip,
+            far: self.far_clip,
+        }
+        .to_perspective()
+        .into()
     }
     pub fn zoom(&mut self, amount: f32) {
-        let translation = Translation3::new(0.0, 0.0, amount);
-        self.local_matrix *= translation.to_homogeneous();
+        let translation = Vector3::new(0.0, 0.0, amount);
+        self.local_matrix = self.local_matrix * Matrix4::from_translation(translation);
     }
-    pub fn rotate(&mut self, axis: Unit<Vector3<f32>>, angle: f32) {
-        let rotation = Rotation3::from_axis_angle(&axis, angle);
+    pub fn rotate(&mut self, axis: Vector3<f32>, angle: f32) {
+        let rotation = Matrix4::from_axis_angle(axis, Rad(angle));
 
-        if axis == Vector3::<f32>::y_axis() {
-            self.target_matrix = self.target_matrix * rotation.to_homogeneous();
+        if axis == Vector3::<f32>::unit_y() {
+            self.target_matrix = self.target_matrix * rotation;
         } else {
-            self.target_matrix = rotation.to_homogeneous() * self.target_matrix;
+            self.target_matrix = rotation * self.target_matrix;
         }
     }
     pub fn set_focal_length(&mut self, focal_length: f32, sensor_size: f32) {

@@ -1,5 +1,6 @@
 use crate::resources::{self, Resources};
-use nalgebra::Matrix4;
+use cgmath::prelude::*;
+use cgmath::{Matrix4, Vector3};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 
@@ -172,6 +173,18 @@ impl Program {
         unsafe {
             let name = self.get_uniform_location(name);
             self.gl.UniformMatrix4fv(name, 1, gl::FALSE, value.as_ptr())
+        }
+    }
+    pub fn set_uniform_float(&mut self, name: String, value: f32) {
+        unsafe {
+            let name = self.get_uniform_location(name);
+            self.gl.Uniform1f(name, value)
+        }
+    }
+    pub fn set_uniform_vector3(&mut self, name: String, value: &Vector3<f32>) {
+        unsafe {
+            let name = self.get_uniform_location(name);
+            self.gl.Uniform3f(name, value.x, value.y, value.z)
         }
     }
     fn get_uniform_location(&mut self, name: String) -> i32 {

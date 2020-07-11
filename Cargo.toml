@@ -10,9 +10,9 @@ version = "0.1.0"
 walkdir = "2.3.1"
 
 [dependencies]
+cgmath = "0.17.0"
 gl = {path = "lib/gl"}
 sdl2 = {version = "0.34.2", features = ["bundled", "static-link"]}
-nalgebra = "0.21.1"
 
 [features]
 gl_debug = ["gl/debug"]

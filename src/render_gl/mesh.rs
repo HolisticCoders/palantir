@@ -1,11 +1,4 @@
-use crate::render_gl::{IndexBuffer, VertexArray, VertexBuffer, VertexBufferLayout};
-use nalgebra::Vector3;
-
-// TODO: Use trait to automatically generate layout
-pub struct Vertex {
-    pub position: Vector3<f32>,
-    pub color: Vector3<f32>,
-}
+use crate::render_gl::{IndexBuffer, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
 
 pub struct Mesh {
     vertex_buffer: VertexBuffer,
@@ -23,6 +16,7 @@ impl Mesh {
             layout: VertexBufferLayout::new(),
         };
 
+        mesh.layout.push::<f32>(3);
         mesh.layout.push::<f32>(3);
         mesh.layout.push::<f32>(3);
 
