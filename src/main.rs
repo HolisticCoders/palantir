@@ -1,7 +1,7 @@
 pub mod render_gl;
 pub mod resources;
 
-use nalgebra::{Matrix4, Perspective3, Vector3};
+use nalgebra::{Matrix4, Vector3};
 use render_gl::{Camera, Mesh, Renderer, Vertex};
 use resources::Resources;
 use std::path::Path;
@@ -70,9 +70,7 @@ fn main() {
     let mesh = Mesh::new(&gl, vertices, indices);
     let model_matrix = Matrix4::<f32>::identity();
 
-    let mut camera = Camera::new();
-
-    let projection_matrix = Perspective3::new(1.0, 90.0, 0.1, 100.0);
+    let mut camera = Camera::from_focal_length(50.0, 36.0, 0.01, 100.0);
 
     'main: loop {
         let mouse_state = sdl2::mouse::MouseState::new(&event_pump);
@@ -80,7 +78,7 @@ fn main() {
             match event {
                 sdl2::event::Event::Quit { .. } => break 'main,
                 sdl2::event::Event::MouseMotion { xrel, yrel, .. } => {
-                    const ORBIT_SENSITIVITY: f32 = 0.025;
+                    const ORBIT_SENSITIVITY: f32 = 0.01;
                     const ZOOM_SENSITIVITY: f32 = 0.01;
 
                     let y_angle = xrel as f32 * ORBIT_SENSITIVITY;
@@ -100,8 +98,7 @@ fn main() {
 
         shader_program.set_uniform_matrix4(String::from("model"), &model_matrix);
         shader_program.set_uniform_matrix4(String::from("view"), &camera.view_matrix());
-        shader_program
-            .set_uniform_matrix4(String::from("projection"), projection_matrix.as_matrix());
+        shader_program.set_uniform_matrix4(String::from("projection"), &camera.projection_matrix());
 
         Renderer::clear(&gl, 0.3, 0.3, 0.5);
         Renderer::draw(&gl, &mesh, &shader_program, gl::TRIANGLES);
