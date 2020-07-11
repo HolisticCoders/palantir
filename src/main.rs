@@ -134,9 +134,8 @@ fn main() {
                         camera.rotate(Vector3::unit_x(), x_angle);
                     } else if mouse_state.right() {
                         let mouse_vector = Vector2::new(xrel as f32, yrel as f32);
-                        let mouse_vector_normalized = mouse_vector.clone().normalize();
-                        let mut direction = mouse_vector_normalized.dot(Vector2::unit_x())
-                            + mouse_vector_normalized.dot(-Vector2::unit_y());
+                        let mut direction = mouse_vector.dot(Vector2::unit_x())
+                            + mouse_vector.dot(Vector2::unit_y());
                         if direction > 0.0 {
                             direction = 1.0;
                         } else if direction < 0.0 {
