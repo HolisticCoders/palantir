@@ -10,14 +10,16 @@ uniform mat4 projection;
 uniform vec3 light_position;
 uniform vec3 light_color;
 uniform float light_power;
+uniform float light_ambient_strength;
 
 out VS_OUTPUT {
     vec3 FragmentPosition;
     vec3 FragmentColor;
     vec3 FragmentNormal;
-    vec3 LightPosition;
     vec3 LightColor;
+    vec3 LightPosition;
     float LightPower;
+    float LightAmbientStrength;
 } OUT;
 
 void main()
@@ -30,6 +32,7 @@ void main()
     OUT.FragmentColor = Color;
     OUT.FragmentNormal = Normal;
 
+    OUT.LightAmbientStrength = light_ambient_strength;
     OUT.LightPosition = light_position;
     OUT.LightColor = light_color;
     OUT.LightPower = light_power;
