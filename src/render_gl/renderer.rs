@@ -5,7 +5,7 @@ impl Renderer {
     pub fn clear(gl: &gl::Gl, r: f32, g: f32, b: f32) {
         unsafe {
             gl.ClearColor(r, g, b, 1.0);
-            gl.Clear(gl::COLOR_BUFFER_BIT);
+            gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }
     pub fn draw(gl: &gl::Gl, mesh: &Mesh, shader: &Program, draw_type: u32) {

@@ -1,4 +1,6 @@
 use crate::resources::{self, Resources};
+use nalgebra::Matrix4;
+use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 
 #[derive(Debug)]
@@ -78,6 +80,7 @@ impl Drop for Shader {
 pub struct Program {
     gl: gl::Gl,
     id: gl::types::GLuint,
+    uniform_location_cache: HashMap<String, i32>,
 }
 
 impl Program {
@@ -147,6 +150,7 @@ impl Program {
         Ok(Program {
             gl: gl.clone(),
             id: program_id,
+            uniform_location_cache: HashMap::new(),
         })
     }
 
@@ -163,6 +167,31 @@ impl Program {
         unsafe {
             self.gl.UseProgram(0);
         }
+    }
+    pub fn set_uniform_matrix4(&mut self, name: String, value: &Matrix4<f32>) {
+        unsafe {
+            let name = self.get_uniform_location(name);
+            self.gl.UniformMatrix4fv(name, 1, gl::FALSE, value.as_ptr())
+        }
+    }
+    fn get_uniform_location(&mut self, name: String) -> i32 {
+        let location: i32;
+
+        match self.uniform_location_cache.get(&name) {
+            Some(value) => {
+                location = *value;
+            }
+            None => {
+                unsafe {
+                    // TODO: refacto as_str.unwrap.as_ptr
+                    location = self
+                        .gl
+                        .GetUniformLocation(self.id, CString::new(name.as_str()).unwrap().as_ptr());
+                }
+                self.uniform_location_cache.insert(name, location);
+            }
+        }
+        location
     }
 }
 
