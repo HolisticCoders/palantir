@@ -1,35 +1,40 @@
+use crate::render_gl::{IndexBuffer, VertexArray, VertexBuffer, VertexBufferLayout};
 use nalgebra::Vector3;
 
+// TODO: Use trait to automatically generate layout
 pub struct Vertex {
     pub position: Vector3<f32>,
     pub color: Vector3<f32>,
 }
 
-impl Vertex {
-    pub fn vertex_attrib_pointer(gl: &gl::Gl) {
-        let stride = std::mem::size_of::<Self>();
+pub struct Mesh {
+    vertex_buffer: VertexBuffer,
+    layout: VertexBufferLayout,
+    index_buffer: IndexBuffer,
+    vertex_array: VertexArray,
+}
 
-        let mut location = 0; // layout (location = 0)
-        let mut offset = 0; // offset of the first component
+impl Mesh {
+    pub fn new(gl: &gl::Gl, vertices: Vec<Vertex>, indices: Vec<u32>) -> Self {
+        let mut mesh = Mesh {
+            vertex_buffer: VertexBuffer::new(gl, vertices),
+            index_buffer: IndexBuffer::new(gl, indices),
+            vertex_array: VertexArray::new(gl),
+            layout: VertexBufferLayout::new(),
+        };
 
-        unsafe {
-            add_vertex_attribute::<Vector3<f32>>(gl, stride, &mut location, &mut offset);
-            add_vertex_attribute::<Vector3<f32>>(gl, stride, &mut location, &mut offset);
-        }
+        mesh.vertex_array.add_buffer(&mesh.vertex_buffer, &mesh.layout);
+
+        mesh.layout.push::<f32>(3);
+        mesh.layout.push::<f32>(3);
+
+        mesh
+    }
+
+    pub fn index_buffer(&self) -> &IndexBuffer {
+        &self.index_buffer
+    }
+    pub fn vertex_array(&self) -> &VertexArray {
+        &self.vertex_array
     }
 }
-
-unsafe fn add_vertex_attribute<T>(gl: &gl::Gl, stride:usize, location:&mut i32, offset: &mut usize){
-    gl.EnableVertexAttribArray(*location as gl::types::GLuint);
-    gl.VertexAttribPointer(
-        *location as gl::types::GLuint,
-        3, // the number of components per generic vertex attribute
-        gl::FLOAT, // data type
-        gl::FALSE, // normalized (int-to-float conversion)
-        stride as gl::types::GLint,
-        *offset as *const gl::types::GLvoid
-    );
-    *location += 1;
-    *offset += std::mem::size_of::<T>();
-}
-

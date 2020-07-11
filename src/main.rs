@@ -2,12 +2,12 @@ pub mod render_gl;
 pub mod resources;
 
 use nalgebra::Vector3;
-use render_gl::Vertex;
+use render_gl::{Mesh, Renderer, Vertex};
 use resources::Resources;
 use std::path::Path;
 
 fn main() {
-    let res = Resources::from_relative_exe_path(Path::new("assets")).unwrap();
+    let resources = Resources::from_relative_exe_path(Path::new("assets")).unwrap();
 
     let sdl = sdl2::init().unwrap();
 
@@ -34,10 +34,9 @@ fn main() {
 
     unsafe {
         gl.Viewport(0, 0, 900, 700);
-        gl.ClearColor(0.3, 0.3, 0.5, 1.0);
     }
 
-    let shader_program = render_gl::Program::from_res(&gl, &res, "shaders/triangle").unwrap();
+    let shader_program = render_gl::Program::from_res(&gl, &resources, "shaders/triangle").unwrap();
 
     #[rustfmt::skip]
     let vertices: Vec<Vertex> = vec![
@@ -45,30 +44,8 @@ fn main() {
         Vertex {position: Vector3::new(-0.5, -0.5, 0.0),color: Vector3::new(0.0, 1.0, 0.0)},
         Vertex {position: Vector3::new(0.0, 0.5, 0.0),  color: Vector3::new(0.0, 0.0, 1.0)}
     ];
-
-    let mut vbo: gl::types::GLuint = 0;
-    let mut vao: gl::types::GLuint = 0;
-    unsafe {
-        gl.GenBuffers(1, &mut vbo);
-
-        gl.BindBuffer(gl::ARRAY_BUFFER, vbo);
-        gl.BufferData(
-            gl::ARRAY_BUFFER,                                                          // target
-            (vertices.len() * std::mem::size_of::<Vertex>()) as gl::types::GLsizeiptr, // size of data in bytes
-            vertices.as_ptr() as *const gl::types::GLvoid, // pointer to data
-            gl::STATIC_DRAW,                               // usage
-        );
-
-        gl.GenVertexArrays(1, &mut vao);
-
-        gl.BindVertexArray(vao);
-
-        Vertex::vertex_attrib_pointer(&gl);
-
-        // Unbind before the main loop
-        gl.BindBuffer(gl::ARRAY_BUFFER, 0);
-        gl.BindVertexArray(0);
-    }
+    let indices = vec![0, 1, 2];
+    let mesh = Mesh::new(&gl, vertices, indices);
 
     'main: loop {
         for event in event_pump.poll_iter() {
@@ -78,19 +55,13 @@ fn main() {
             }
         }
 
-        unsafe {
-            gl.Clear(gl::COLOR_BUFFER_BIT);
-        }
-
-        shader_program.set_used();
-        unsafe {
-            gl.BindVertexArray(vao);
-            gl.DrawArrays(
-                gl::TRIANGLES, // mode
-                0,             // starting index in the enabled arrays
-                3,             // number of indices to be rendered
-            );
-        }
+        Renderer::draw(
+            &gl,
+            &mesh,
+            &shader_program,
+            gl::TRIANGLES,
+        );
+        Renderer::clear(&gl, 0.3, 0.3, 0.5);
 
         window.gl_swap_window();
     }

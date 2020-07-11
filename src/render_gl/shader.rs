@@ -154,9 +154,14 @@ impl Program {
         self.id
     }
 
-    pub fn set_used(&self) {
+    pub fn bind(&self) {
         unsafe {
             self.gl.UseProgram(self.id);
+        }
+    }
+    pub fn unbind(&self) {
+        unsafe {
+            self.gl.UseProgram(0);
         }
     }
 }
