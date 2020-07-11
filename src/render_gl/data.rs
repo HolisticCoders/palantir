@@ -23,10 +23,11 @@ impl Mesh {
             layout: VertexBufferLayout::new(),
         };
 
-        mesh.vertex_array.add_buffer(&mesh.vertex_buffer, &mesh.layout);
+        mesh.layout.push::<f32>(3);
+        mesh.layout.push::<f32>(3);
 
-        mesh.layout.push::<f32>(3);
-        mesh.layout.push::<f32>(3);
+        mesh.vertex_array
+            .add_buffer(&mesh.vertex_buffer, &mesh.layout);
 
         mesh
     }

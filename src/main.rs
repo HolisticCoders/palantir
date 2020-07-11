@@ -55,13 +55,8 @@ fn main() {
             }
         }
 
-        Renderer::draw(
-            &gl,
-            &mesh,
-            &shader_program,
-            gl::TRIANGLES,
-        );
         Renderer::clear(&gl, 0.3, 0.3, 0.5);
+        Renderer::draw(&gl, &mesh, &shader_program, gl::TRIANGLES);
 
         window.gl_swap_window();
     }
