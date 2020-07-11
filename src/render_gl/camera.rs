@@ -8,14 +8,16 @@ pub struct Camera {
     pub far_clip: f32,
     local_matrix: Matrix4<f32>,
     target_matrix: Matrix4<f32>,
+    aspect: f32,
 }
 
 impl Camera {
-    pub fn new(fov: f32, near_clip: f32, far_clip: f32) -> Self {
+    pub fn new(fov: f32, near_clip: f32, far_clip: f32, aspect: f32) -> Self {
         let mut camera = Camera {
             fov,
             near_clip,
             far_clip,
+            aspect,
             local_matrix: Matrix4::<f32>::identity(),
             target_matrix: Matrix4::<f32>::identity(),
         };
@@ -29,8 +31,9 @@ impl Camera {
         sensor_size: f32,
         near_clip: f32,
         far_clip: f32,
+        aspect: f32,
     ) -> Self {
-        let mut camera = Camera::new(0.0, near_clip, far_clip);
+        let mut camera = Camera::new(0.0, near_clip, far_clip, aspect);
         camera.set_focal_length(focal_length, sensor_size);
         camera
     }
@@ -40,7 +43,7 @@ impl Camera {
     pub fn projection_matrix(&self) -> Matrix4<f32> {
         PerspectiveFov {
             fovy: Rad(self.fov),
-            aspect: 1.0,
+            aspect: self.aspect,
             near: self.near_clip,
             far: self.far_clip,
         }
@@ -62,5 +65,8 @@ impl Camera {
     }
     pub fn set_focal_length(&mut self, focal_length: f32, sensor_size: f32) {
         self.fov = 2.0 * f32::atan(sensor_size * 0.5 / focal_length);
+    }
+    pub fn set_aspect_ratio(&mut self, aspect: f32) {
+        self.aspect = aspect;
     }
 }

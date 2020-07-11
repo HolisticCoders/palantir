@@ -5,6 +5,8 @@ use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector3};
 use render_gl::{Camera, Light, Mesh, Renderer, Vertex};
 use resources::Resources;
+use sdl2::event::{Event, WindowEvent};
+use sdl2::mouse::MouseState;
 use std::path::Path;
 
 fn main() {
@@ -97,7 +99,11 @@ fn main() {
     let mesh = Mesh::new(&gl, vertices, indices);
     let model_matrix = Matrix4::<f32>::identity();
 
-    let mut camera = Camera::from_focal_length(50.0, 36.0, 0.01, 100.0);
+    let (width, height) = window.size();
+    let aspect = width as f32 / height as f32;
+
+    let mut camera = Camera::from_focal_length(50.0, 36.0, 0.01, 100.0, aspect);
+
     let mut light = Light {
         matrix: Matrix4::from_translation(Vector3::new(1.0, 1.0, 1.0)),
         color: Vector3::new(1.0, 1.0, 1.0),
@@ -105,11 +111,18 @@ fn main() {
     };
 
     'main: loop {
-        let mouse_state = sdl2::mouse::MouseState::new(&event_pump);
+        let mouse_state = MouseState::new(&event_pump);
         for event in event_pump.poll_iter() {
             match event {
-                sdl2::event::Event::Quit { .. } => break 'main,
-                sdl2::event::Event::MouseMotion { xrel, yrel, .. } => {
+                Event::Quit { .. } => break 'main,
+                Event::Window {
+                    win_event: WindowEvent::SizeChanged(x, y),
+                    ..
+                } => unsafe {
+                    gl.Viewport(0, 0, x, y);
+                    camera.set_aspect_ratio(x as f32 / y as f32);
+                },
+                Event::MouseMotion { xrel, yrel, .. } => {
                     const ORBIT_SENSITIVITY: f32 = 0.01;
                     const ZOOM_SENSITIVITY: f32 = 0.01;
 
