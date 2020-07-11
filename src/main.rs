@@ -1,8 +1,8 @@
 pub mod render_gl;
 pub mod resources;
 
-use nalgebra::{Isometry3, Matrix4, Perspective3, Point3, Vector3};
-use render_gl::{Mesh, Renderer, Vertex};
+use nalgebra::{Matrix4, Perspective3, Vector3};
+use render_gl::{Camera, Mesh, Renderer, Vertex};
 use resources::Resources;
 use std::path::Path;
 
@@ -68,24 +68,38 @@ fn main() {
         1, 4, 5,
     ];
     let mesh = Mesh::new(&gl, vertices, indices);
-    let mut model_matrix = Matrix4::<f32>::identity();
+    let model_matrix = Matrix4::<f32>::identity();
 
-    let eye = Point3::new(0.0, 0.0, 2.0);
-    let target = Point3::new(0.0, 0.0, 0.0);
-    let view_matrix = Isometry3::look_at_rh(&eye, &target, &Vector3::y()).to_homogeneous();
+    let mut camera = Camera::new();
+
     let projection_matrix = Perspective3::new(1.0, 90.0, 0.1, 100.0);
 
     'main: loop {
+        let mouse_state = sdl2::mouse::MouseState::new(&event_pump);
         for event in event_pump.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => break 'main,
+                sdl2::event::Event::MouseMotion { xrel, yrel, .. } => {
+                    const ORBIT_SENSITIVITY: f32 = 0.025;
+                    const ZOOM_SENSITIVITY: f32 = 0.01;
+
+                    let y_angle = xrel as f32 * ORBIT_SENSITIVITY;
+                    let x_angle = yrel as f32 * ORBIT_SENSITIVITY;
+                    let zoom_amount = xrel as f32 * ZOOM_SENSITIVITY;
+
+                    if mouse_state.left() {
+                        camera.rotate(Vector3::y_axis(), y_angle);
+                        camera.rotate(Vector3::x_axis(), x_angle);
+                    } else if mouse_state.right() {
+                        camera.zoom(zoom_amount);
+                    }
+                }
                 _ => {}
             }
         }
-        let rotation = Matrix4::from_euler_angles(0.01, 0.01, 0.01);
-        model_matrix = model_matrix * rotation;
+
         shader_program.set_uniform_matrix4(String::from("model"), &model_matrix);
-        shader_program.set_uniform_matrix4(String::from("view"), &view_matrix);
+        shader_program.set_uniform_matrix4(String::from("view"), &camera.view_matrix());
         shader_program
             .set_uniform_matrix4(String::from("projection"), projection_matrix.as_matrix());
 
