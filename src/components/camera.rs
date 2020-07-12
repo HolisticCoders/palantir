@@ -1,6 +1,5 @@
 use cgmath::prelude::*;
 use cgmath::{Matrix4, PerspectiveFov, Rad, Vector3};
-// use std::primitive::f32;
 
 pub struct Camera {
     pub fov: f32,

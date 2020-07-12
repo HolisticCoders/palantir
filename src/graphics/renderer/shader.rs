@@ -78,14 +78,14 @@ impl Drop for Shader {
     }
 }
 
-pub struct Program {
+pub struct ShaderProgram {
     gl: gl::Gl,
     id: gl::types::GLuint,
     uniform_location_cache: HashMap<String, i32>,
 }
 
-impl Program {
-    pub fn from_res(gl: &gl::Gl, res: &Resources, name: &str) -> Result<Program, Error> {
+impl ShaderProgram {
+    pub fn from_res(gl: &gl::Gl, res: &Resources, name: &str) -> Result<ShaderProgram, Error> {
         const POSSIBLE_EXT: [&str; 2] = [".vert", ".frag"];
 
         let resource_names = POSSIBLE_EXT
@@ -98,13 +98,13 @@ impl Program {
             .map(|resource_name| Shader::from_res(gl, res, resource_name))
             .collect::<Result<Vec<Shader>, Error>>()?;
 
-        Program::from_shaders(gl, &shaders[..]).map_err(|message| Error::LinkError {
+        ShaderProgram::from_shaders(gl, &shaders[..]).map_err(|message| Error::LinkError {
             name: name.into(),
             message,
         })
     }
 
-    pub fn from_shaders(gl: &gl::Gl, shaders: &[Shader]) -> Result<Program, String> {
+    pub fn from_shaders(gl: &gl::Gl, shaders: &[Shader]) -> Result<ShaderProgram, String> {
         let program_id = unsafe { gl.CreateProgram() };
 
         for shader in shaders {
@@ -148,7 +148,7 @@ impl Program {
             }
         }
 
-        Ok(Program {
+        Ok(ShaderProgram {
             gl: gl.clone(),
             id: program_id,
             uniform_location_cache: HashMap::new(),
@@ -208,7 +208,7 @@ impl Program {
     }
 }
 
-impl Drop for Program {
+impl Drop for ShaderProgram {
     fn drop(&mut self) {
         unsafe {
             self.gl.DeleteProgram(self.id);

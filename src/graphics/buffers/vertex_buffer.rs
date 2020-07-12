@@ -1,4 +1,4 @@
-use crate::render_gl::Vertex;
+use crate::graphics::Vertex;
 
 pub struct VertexBuffer {
     id: u32,

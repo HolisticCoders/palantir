@@ -1,4 +1,5 @@
-use crate::render_gl::{Mesh, Program};
+use crate::graphics::{Mesh, ShaderProgram};
+
 pub struct Renderer {}
 
 impl Renderer {
@@ -8,7 +9,7 @@ impl Renderer {
             gl.Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
         }
     }
-    pub fn draw(gl: &gl::Gl, mesh: &Mesh, shader: &Program, draw_type: u32) {
+    pub fn draw(gl: &gl::Gl, mesh: &Mesh, shader: &ShaderProgram, draw_type: u32) {
         shader.bind();
         mesh.vertex_array().bind();
         mesh.index_buffer().bind();

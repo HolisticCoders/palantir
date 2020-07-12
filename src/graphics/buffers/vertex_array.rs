@@ -1,4 +1,4 @@
-use crate::render_gl::buffers::vertex_buffer::{VertexBuffer, VertexBufferLayout};
+use crate::graphics::{VertexBuffer, VertexBufferLayout};
 
 pub struct VertexArray {
     id: u32,

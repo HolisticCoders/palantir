@@ -1,4 +1,4 @@
-use crate::render_gl::{IndexBuffer, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
+use crate::graphics::{IndexBuffer, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
 
 pub struct Mesh {
     vertex_buffer: VertexBuffer,

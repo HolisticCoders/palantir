@@ -1,9 +1,11 @@
-pub mod render_gl;
+pub mod components;
+pub mod graphics;
 pub mod resources;
 
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
-use render_gl::{Camera, Light, Mesh, Renderer, Vertex};
+use components::{Camera, Light};
+use graphics::{Mesh, Renderer, ShaderProgram, Vertex};
 use resources::Resources;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
@@ -40,8 +42,7 @@ fn main() {
         gl.Enable(gl::DEPTH_TEST);
     }
 
-    let mut shader_program =
-        render_gl::Program::from_res(&gl, &resources, "shaders/default").unwrap();
+    let mut shader_program = ShaderProgram::from_res(&gl, &resources, "shaders/default").unwrap();
 
     #[rustfmt::skip]
     let vertices: Vec<Vertex> = vec![
