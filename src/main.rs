@@ -4,8 +4,8 @@ pub mod resources;
 
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
-use components::{Camera, Light};
-use graphics::{Mesh, Renderer, ShaderProgram, Vertex};
+use components::{create_cube, Camera, Light};
+use graphics::{Renderer, ShaderProgram};
 use resources::Resources;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
@@ -42,62 +42,9 @@ fn main() {
         gl.Enable(gl::DEPTH_TEST);
     }
 
+    let mesh = create_cube(&gl, 0.5);
+
     let mut shader_program = ShaderProgram::from_res(&gl, &resources, "shaders/default").unwrap();
-
-    #[rustfmt::skip]
-    let vertices: Vec<Vertex> = vec![
-        // Top
-        Vertex { position: Vector3::new(0.5, 0.5, 0.5),     color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 1.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, 0.5, 0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 1.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, 0.5, -0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 1.0, 0.0) },
-        Vertex { position: Vector3::new(0.5, 0.5, -0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 1.0, 0.0) },
-
-        // Bottom
-        Vertex { position: Vector3::new(0.5, -0.5, 0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, -1.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, -0.5, 0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, -1.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, -0.5, -0.5),  color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, -1.0, 0.0) },
-        Vertex { position: Vector3::new(0.5, -0.5, -0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, -1.0, 0.0) },
-
-        // Right
-        Vertex { position: Vector3::new(0.5, 0.5, 0.5),     color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(1.0, 0.0, 0.0) },
-        Vertex { position: Vector3::new(0.5, 0.5, -0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(1.0, 0.0, 0.0) },
-        Vertex { position: Vector3::new(0.5, -0.5, -0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(1.0, 0.0, 0.0) },
-        Vertex { position: Vector3::new(0.5, -0.5, 0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(1.0, 0.0, 0.0) },
-
-        // Left
-        Vertex { position: Vector3::new(-0.5, 0.5, 0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(-1.0, 0.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, 0.5, -0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(-1.0, 0.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, -0.5, -0.5),  color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(-1.0, 0.0, 0.0) },
-        Vertex { position: Vector3::new(-0.5, -0.5, 0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(-1.0, 0.0, 0.0) },
-
-        // Front
-        Vertex { position: Vector3::new(0.5, 0.5, -0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 0.0, -1.0) },
-        Vertex { position: Vector3::new(-0.5, 0.5, -0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 0.0, -1.0) },
-        Vertex { position: Vector3::new(-0.5, -0.5, -0.5),  color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 0.0, -1.0) },
-        Vertex { position: Vector3::new(0.5, -0.5, -0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 0.0, -1.0) },
-
-        // Back
-        Vertex { position: Vector3::new(0.5, 0.5, 0.5),     color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 0.0, 1.0) },
-        Vertex { position: Vector3::new(-0.5, 0.5, 0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 0.0, 1.0) },
-        Vertex { position: Vector3::new(-0.5, -0.5, 0.5),   color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 0.0, 1.0) },
-        Vertex { position: Vector3::new(0.5, -0.5, 0.5),    color: Vector3::new(0.5, 0.5, 0.5),     normal: Vector3::new(0.0, 0.0, 1.0) },
-    ];
-    #[rustfmt::skip]
-    let indices = vec![
-        0, 1, 2, // top
-        0, 2, 3,
-        4, 5, 6, // bot
-        4, 6, 7,
-        8, 9, 10, // right
-        8, 10, 11,
-        12, 13, 14, // left
-        12, 14, 15,
-        16, 17, 18, // front
-        16, 18, 19,
-        20, 21, 22, // back
-        20, 22, 23,
-    ];
-    let mesh = Mesh::new(&gl, vertices, indices);
     let model_matrix = Matrix4::<f32>::identity();
 
     let (width, height) = window.size();
