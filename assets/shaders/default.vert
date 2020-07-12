@@ -1,8 +1,7 @@
 #version 330 core
 
 layout (location = 0) in vec3 Position;
-layout (location = 1) in vec3 Color;
-layout (location = 2) in vec3 Normal;
+layout (location = 1) in vec3 Normal;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -14,7 +13,6 @@ uniform float light_ambient_strength;
 
 out VS_OUTPUT {
     vec3 FragmentPosition;
-    vec3 FragmentColor;
     vec3 FragmentNormal;
     vec3 LightColor;
     vec3 LightDirection;
@@ -29,7 +27,6 @@ void main()
     gl_Position = projection * view * vertex_position;
 
     OUT.FragmentPosition = vec3(vertex_position);
-    OUT.FragmentColor = Color;
     OUT.FragmentNormal = Normal;
 
     OUT.LightAmbientStrength = light_ambient_strength;

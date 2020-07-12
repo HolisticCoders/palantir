@@ -47,7 +47,7 @@ impl Resources {
     }
 
     pub fn load_cstring(&self, resource_name: &str) -> Result<ffi::CString, ResourceError> {
-        let mut file = fs::File::open(resource_name_to_path(&self.root_path, resource_name))?;
+        let mut file = fs::File::open(self.resource_name_to_path(resource_name))?;
 
         // allocate buffer of the same size as file
         let mut buffer: Vec<u8> = Vec::with_capacity(file.metadata()?.len() as usize + 1);
@@ -60,14 +60,14 @@ impl Resources {
 
         Ok(unsafe { ffi::CString::from_vec_unchecked(buffer) })
     }
-}
 
-fn resource_name_to_path(root_dir: &Path, location: &str) -> PathBuf {
-    let mut path: PathBuf = root_dir.into();
+    pub fn resource_name_to_path(&self, location: &str) -> PathBuf {
+        let mut path: PathBuf = self.root_path.clone();
 
-    for part in location.split("/") {
-        path = path.join(part);
+        for part in location.split("/") {
+            path = path.join(part);
+        }
+
+        path
     }
-
-    path
 }

@@ -5,35 +5,35 @@ pub fn create_cube(gl: &gl::Gl, size: f32) -> Mesh {
     #[rustfmt::skip]
     let vertices = vec![
         // Top
-        Vertex { position: Vector3::new(size, size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 1.0, 0.0), },
-        Vertex { position: Vector3::new(-size, size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 1.0, 0.0), },
-        Vertex { position: Vector3::new(-size, size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 1.0, 0.0), },
-        Vertex { position: Vector3::new(size, size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 1.0, 0.0), },
+        Vertex { position: Vector3::new(size, size, size), normal: Vector3::new(0.0, 1.0, 0.0), },
+        Vertex { position: Vector3::new(-size, size, size), normal: Vector3::new(0.0, 1.0, 0.0), },
+        Vertex { position: Vector3::new(-size, size, -size), normal: Vector3::new(0.0, 1.0, 0.0), },
+        Vertex { position: Vector3::new(size, size, -size), normal: Vector3::new(0.0, 1.0, 0.0), },
         // Bottom
-        Vertex { position: Vector3::new(size, -size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, -1.0, 0.0), },
-        Vertex { position: Vector3::new(-size, -size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, -1.0, 0.0), },
-        Vertex { position: Vector3::new(-size, -size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, -1.0, 0.0), },
-        Vertex { position: Vector3::new(size, -size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, -1.0, 0.0), },
+        Vertex { position: Vector3::new(size, -size, size), normal: Vector3::new(0.0, -1.0, 0.0), },
+        Vertex { position: Vector3::new(-size, -size, size), normal: Vector3::new(0.0, -1.0, 0.0), },
+        Vertex { position: Vector3::new(-size, -size, -size), normal: Vector3::new(0.0, -1.0, 0.0), },
+        Vertex { position: Vector3::new(size, -size, -size), normal: Vector3::new(0.0, -1.0, 0.0), },
         // Right
-        Vertex { position: Vector3::new(size, size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(1.0, 0.0, 0.0), },
-        Vertex { position: Vector3::new(size, size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(1.0, 0.0, 0.0), },
-        Vertex { position: Vector3::new(size, -size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(1.0, 0.0, 0.0), },
-        Vertex { position: Vector3::new(size, -size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(1.0, 0.0, 0.0), },
+        Vertex { position: Vector3::new(size, size, size), normal: Vector3::new(1.0, 0.0, 0.0), },
+        Vertex { position: Vector3::new(size, size, -size), normal: Vector3::new(1.0, 0.0, 0.0), },
+        Vertex { position: Vector3::new(size, -size, -size), normal: Vector3::new(1.0, 0.0, 0.0), },
+        Vertex { position: Vector3::new(size, -size, size), normal: Vector3::new(1.0, 0.0, 0.0), },
         // Left
-        Vertex { position: Vector3::new(-size, size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(-1.0, 0.0, 0.0), },
-        Vertex { position: Vector3::new(-size, size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(-1.0, 0.0, 0.0), },
-        Vertex { position: Vector3::new(-size, -size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(-1.0, 0.0, 0.0), },
-        Vertex { position: Vector3::new(-size, -size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(-1.0, 0.0, 0.0), },
+        Vertex { position: Vector3::new(-size, size, size), normal: Vector3::new(-1.0, 0.0, 0.0), },
+        Vertex { position: Vector3::new(-size, size, -size), normal: Vector3::new(-1.0, 0.0, 0.0), },
+        Vertex { position: Vector3::new(-size, -size, -size), normal: Vector3::new(-1.0, 0.0, 0.0), },
+        Vertex { position: Vector3::new(-size, -size, size), normal: Vector3::new(-1.0, 0.0, 0.0), },
         // Front
-        Vertex { position: Vector3::new(size, size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 0.0, -1.0), },
-        Vertex { position: Vector3::new(-size, size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 0.0, -1.0), },
-        Vertex { position: Vector3::new(-size, -size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 0.0, -1.0), },
-        Vertex { position: Vector3::new(size, -size, -size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 0.0, -1.0), },
+        Vertex { position: Vector3::new(size, size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
+        Vertex { position: Vector3::new(-size, size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
+        Vertex { position: Vector3::new(-size, -size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
+        Vertex { position: Vector3::new(size, -size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
         // Back
-        Vertex { position: Vector3::new(size, size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 0.0, 1.0), },
-        Vertex { position: Vector3::new(-size, size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 0.0, 1.0), },
-        Vertex { position: Vector3::new(-size, -size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 0.0, 1.0), },
-        Vertex { position: Vector3::new(size, -size, size), color: Vector3::new(0.5, 0.5, 0.5), normal: Vector3::new(0.0, 0.0, 1.0), },
+        Vertex { position: Vector3::new(size, size, size), normal: Vector3::new(0.0, 0.0, 1.0), },
+        Vertex { position: Vector3::new(-size, size, size), normal: Vector3::new(0.0, 0.0, 1.0), },
+        Vertex { position: Vector3::new(-size, -size, size), normal: Vector3::new(0.0, 0.0, 1.0), },
+        Vertex { position: Vector3::new(size, -size, size), normal: Vector3::new(0.0, 0.0, 1.0), },
     ];
 
     #[rustfmt::skip]

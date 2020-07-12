@@ -14,7 +14,8 @@ use sdl2::mouse::MouseState;
 fn main() {
     let mut app = Application::new(900, 900).unwrap();
 
-    let mesh = create_cube(&app.gl, 0.5);
+    // let mesh = create_cube(&app.gl, 0.5);
+    let mesh = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
 
     let mut shader_program =
         ShaderProgram::from_res(&app.gl, &app.resources, "shaders/default").unwrap();
