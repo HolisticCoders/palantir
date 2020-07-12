@@ -1,6 +1,6 @@
-pub mod components;
-pub mod graphics;
-pub mod resources;
+mod components;
+mod graphics;
+mod resources;
 
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};

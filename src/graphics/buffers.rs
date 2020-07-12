@@ -1,6 +1,6 @@
-pub mod index_buffer;
-pub mod vertex_array;
-pub mod vertex_buffer;
+mod index_buffer;
+mod vertex_array;
+mod vertex_buffer;
 
 pub use self::index_buffer::*;
 pub use self::vertex_array::*;

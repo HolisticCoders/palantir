@@ -1,5 +1,5 @@
-pub mod renderer;
-pub mod shader;
+mod renderer;
+mod shader;
 
 pub use self::renderer::*;
 pub use self::shader::*;

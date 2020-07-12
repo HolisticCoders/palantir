@@ -1,6 +1,6 @@
-pub mod buffers;
-pub mod mesh;
-pub mod renderer;
+mod buffers;
+mod mesh;
+mod renderer;
 
 pub use self::buffers::*;
 pub use self::mesh::*;
