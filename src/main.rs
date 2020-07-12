@@ -2,7 +2,7 @@ pub mod render_gl;
 pub mod resources;
 
 use cgmath::prelude::*;
-use cgmath::{Matrix4, Vector2, Vector3};
+use cgmath::{Matrix4, Point3, Vector2, Vector3};
 use render_gl::{Camera, Light, Mesh, Renderer, Vertex};
 use resources::Resources;
 use sdl2::event::{Event, WindowEvent};
@@ -105,7 +105,11 @@ fn main() {
     let mut camera = Camera::from_focal_length(50.0, 36.0, 0.01, 100.0, aspect);
 
     let mut light = Light {
-        matrix: Matrix4::from_translation(Vector3::new(1.0, 1.0, 1.0)),
+        matrix: Matrix4::look_at_dir(
+            Point3::new(0.0, 0.0, 0.0),
+            Vector3::new(1.0, -1.0, 1.0),
+            Vector3::unit_y(),
+        ),
         color: Vector3::new(1.0, 1.0, 1.0),
         ambient_strength: 0.25,
         power: 1.0,
@@ -160,8 +164,8 @@ fn main() {
         shader_program.set_uniform_matrix4(String::from("view"), &camera.view_matrix());
         shader_program.set_uniform_matrix4(String::from("projection"), &camera.projection_matrix());
         shader_program.set_uniform_vector3(
-            String::from("light_position"),
-            &position_from_matrix(&light.matrix),
+            String::from("light_direction"),
+            &light.matrix.transform_vector(Vector3::unit_z()),
         );
         shader_program.set_uniform_vector3(String::from("light_color"), &light.color);
         shader_program.set_uniform_float(
@@ -175,8 +179,4 @@ fn main() {
 
         window.gl_swap_window();
     }
-}
-
-fn position_from_matrix(matrix: &Matrix4<f32>) -> Vector3<f32> {
-    Vector3::new(matrix.w.x, matrix.w.y, matrix.w.z)
 }
