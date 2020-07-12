@@ -73,6 +73,7 @@ fn process_frame(
                 camera.set_aspect_ratio(x as f32 / y as f32);
             },
             Event::MouseMotion { xrel, yrel, .. } => {
+                const PAN_SENSITIVITY: f32 = 0.0075;
                 const ORBIT_SENSITIVITY: f32 = 0.01;
                 const ZOOM_SENSITIVITY: f32 = 0.01;
 
@@ -94,9 +95,18 @@ fn process_frame(
                     if !zoom_amount.is_nan() {
                         camera.zoom(zoom_amount);
                     }
+                } else if mouse_state.middle() {
+                    let x = xrel as f32 * PAN_SENSITIVITY;
+                    let y = yrel as f32 * PAN_SENSITIVITY;
+                    camera.pan(x, y);
                 }
             }
             Event::MouseWheel { y, .. } => camera.zoom(y as f32),
+            Event::KeyDown { keycode, .. } => match keycode {
+                //TODO: refacto to focus on selection
+                Some(sdl2::keyboard::Keycode::F) => camera.focus(),
+                _ => (),
+            },
 
             _ => {}
         }

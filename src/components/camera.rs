@@ -1,5 +1,5 @@
 use cgmath::prelude::*;
-use cgmath::{Matrix4, PerspectiveFov, Rad, Vector3};
+use cgmath::{Matrix4, PerspectiveFov, Rad, Vector3, Vector4};
 
 pub struct Camera {
     pub fov: f32,
@@ -49,6 +49,11 @@ impl Camera {
         .to_perspective()
         .into()
     }
+    pub fn pan(&mut self, x: f32, y: f32) {
+        let vector = Vector3::new(x, -y, 0.0);
+        let transformation_matrix = Matrix4::from_translation(vector);
+        self.target_matrix = transformation_matrix * self.target_matrix;
+    }
     pub fn zoom(&mut self, amount: f32) {
         let translation = Vector3::new(0.0, 0.0, amount);
         self.local_matrix = self.local_matrix * Matrix4::from_translation(translation);
@@ -61,6 +66,10 @@ impl Camera {
         } else {
             self.target_matrix = rotation * self.target_matrix;
         }
+    }
+    pub fn focus(&mut self) {
+        //TODO: refacto to focus on selection
+        self.target_matrix.w = Vector4::new(0.0, 0.0, 0.0, 1.0);
     }
     pub fn set_focal_length(&mut self, focal_length: f32, sensor_size: f32) {
         self.fov = 2.0 * f32::atan(sensor_size * 0.5 / focal_length);
