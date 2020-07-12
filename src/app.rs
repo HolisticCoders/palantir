@@ -7,8 +7,8 @@ pub struct Application {
     pub window: sdl2::video::Window,
     pub gl: gl::Gl,
     pub events: sdl2::EventPump,
+    pub video: sdl2::VideoSubsystem,
     _sdl: sdl2::Sdl,
-    _video: sdl2::VideoSubsystem,
     _context: sdl2::video::GLContext,
 }
 
@@ -18,22 +18,22 @@ impl Application {
 
         let _sdl = sdl2::init()?;
 
-        let _video = _sdl.video()?;
+        let video = _sdl.video()?;
 
-        let gl_attributes = _video.gl_attr();
+        let gl_attributes = video.gl_attr();
 
         gl_attributes.set_context_profile(sdl2::video::GLProfile::Core);
-        gl_attributes.set_context_version(4, 5);
+        gl_attributes.set_context_version(3, 0);
 
-        let window = _video
+        let window = video
             .window("Palantir", width, height)
             .opengl()
+            .allow_highdpi()
             .resizable()
             .build()?;
 
         let _context = window.gl_create_context()?;
-        let gl =
-            gl::Gl::load_with(|s| _video.gl_get_proc_address(s) as *const std::os::raw::c_void);
+        let gl = gl::Gl::load_with(|s| video.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
         let events = _sdl.event_pump()?;
 
@@ -47,8 +47,8 @@ impl Application {
             window,
             gl,
             events,
+            video,
             _sdl,
-            _video,
             _context,
         })
     }

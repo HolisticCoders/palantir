@@ -6,15 +6,16 @@ mod resources;
 use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
-use components::{create_cube, Camera, Light};
+use components::{Camera, Light};
 use graphics::{Mesh, Renderer, ShaderProgram};
+use imgui::{im_str, Context, ImString};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
+use std::time::Instant;
 
 fn main() {
     let mut app = Application::new(900, 900).unwrap();
 
-    // let mesh = create_cube(&app.gl, 0.5);
     let mesh = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
 
     let mut shader_program =
@@ -37,6 +38,15 @@ fn main() {
         power: 1.0,
     };
 
+    let mut imgui = Context::create();
+    imgui.set_ini_filename(None);
+
+    let mut imgui_sdl2 = imgui_sdl2::ImguiSdl2::new(&mut imgui, &app.window);
+    let renderer =
+        imgui_opengl_renderer::Renderer::new(&mut imgui, |s| app.video.gl_get_proc_address(s) as _);
+
+    let mut last_frame = Instant::now();
+
     loop {
         match process_frame(
             &mut app,
@@ -45,6 +55,10 @@ fn main() {
             &mut shader_program,
             &model_matrix,
             &mesh,
+            &mut last_frame,
+            &mut imgui,
+            &mut imgui_sdl2,
+            &renderer,
         ) {
             true => break,
             false => (),
@@ -60,9 +74,17 @@ fn process_frame(
     shader_program: &mut ShaderProgram,
     model_matrix: &Matrix4<f32>,
     mesh: &Mesh,
+    last_frame: &mut Instant,
+    imgui_context: &mut Context,
+    imgui_sdl2: &mut imgui_sdl2::ImguiSdl2,
+    renderer: &imgui_opengl_renderer::Renderer,
 ) -> bool {
     let mouse_state = MouseState::new(&app.events);
     for event in app.events.poll_iter() {
+        imgui_sdl2.handle_event(imgui_context, &event);
+        if imgui_sdl2.ignore_event(&event) {
+            continue;
+        }
         match event {
             Event::Quit { .. } => return true,
             Event::Window {
@@ -107,10 +129,28 @@ fn process_frame(
                 Some(sdl2::keyboard::Keycode::F) => camera.focus(),
                 _ => (),
             },
-
             _ => {}
         }
     }
+
+    imgui_sdl2.prepare_frame(
+        imgui_context.io_mut(),
+        &app.window,
+        &app.events.mouse_state(),
+    );
+
+    let now = Instant::now();
+    let delta = now - *last_frame;
+    let delta_s = delta.as_secs() as f32 + delta.subsec_nanos() as f32 / 1_000_000_000.0;
+    *last_frame = now;
+
+    imgui_context.io_mut().delta_time = delta_s;
+
+    let ui = imgui_context.frame();
+
+    let fps = 1 as f32 / delta_s;
+    let fps_str = format!("{}", fps);
+    ui.label_text(im_str!("FPS"), &ImString::new(fps_str));
 
     light.matrix = camera.view_matrix().inverse_transform().unwrap()
         * Matrix4::from_translation(Vector3::new(-2.0, 2.0, 1.0));
@@ -132,6 +172,10 @@ fn process_frame(
     Renderer::clear(&app.gl, 0.1, 0.1, 0.1);
     Renderer::draw(&app.gl, &mesh, &shader_program, gl::TRIANGLES);
 
+    imgui_sdl2.prepare_render(&ui, &app.window);
+    renderer.render(ui);
+
     app.window.gl_swap_window();
+
     return false;
 }
