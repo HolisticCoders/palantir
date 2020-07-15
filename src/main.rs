@@ -6,7 +6,7 @@ mod resources;
 use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
-use components::{Camera, Light};
+use components::{Camera, Cube, Light, Plane};
 use graphics::{Mesh, Renderer, ShaderProgram};
 use imgui::{im_str, Context, ImString};
 use sdl2::event::{Event, WindowEvent};
@@ -16,16 +16,23 @@ use std::time::Instant;
 fn main() {
     let mut app = Application::new(900, 900).unwrap();
 
-    let mesh = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
+    let mut meshes = Vec::<Mesh>::new();
+
+    let plane = Plane::new(&app.gl, 10.0);
+    let mut cube = Cube::new(&app.gl, 0.5);
+    cube.matrix = Matrix4::from_translation(Vector3::new(1.5, 0.5, 0.0));
+    let mut suzanne = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
+    suzanne.matrix = Matrix4::from_translation(Vector3::new(-1.5, 1.0, 0.0));
+    meshes.push(plane);
+    meshes.push(cube);
+    meshes.push(suzanne);
 
     let mut shader_program =
         ShaderProgram::from_res(&app.gl, &app.resources, "shaders/default").unwrap();
-    let model_matrix = Matrix4::<f32>::identity();
-
     let (width, height) = app.window.size();
     let aspect = width as f32 / height as f32;
 
-    let mut camera = Camera::from_focal_length(50.0, 36.0, 0.01, 100.0, aspect);
+    let mut camera = Camera::from_focal_length(50.0, 36.0, 0.01, 1000.0, aspect);
 
     let mut light = Light {
         matrix: Matrix4::look_at_dir(
@@ -53,8 +60,7 @@ fn main() {
             &mut camera,
             &mut light,
             &mut shader_program,
-            &model_matrix,
-            &mesh,
+            &meshes,
             &mut last_frame,
             &mut imgui,
             &mut imgui_sdl2,
@@ -72,8 +78,7 @@ fn process_frame(
     camera: &mut Camera,
     light: &mut Light,
     shader_program: &mut ShaderProgram,
-    model_matrix: &Matrix4<f32>,
-    mesh: &Mesh,
+    meshes: &Vec<Mesh>,
     last_frame: &mut Instant,
     imgui_context: &mut Context,
     imgui_sdl2: &mut imgui_sdl2::ImguiSdl2,
@@ -155,7 +160,6 @@ fn process_frame(
     light.matrix = camera.view_matrix().inverse_transform().unwrap()
         * Matrix4::from_translation(Vector3::new(-2.0, 2.0, 1.0));
 
-    shader_program.set_uniform_matrix4(String::from("model"), &model_matrix);
     shader_program.set_uniform_matrix4(String::from("view"), &camera.view_matrix());
     shader_program.set_uniform_matrix4(String::from("projection"), &camera.projection_matrix());
     shader_program.set_uniform_vector3(
@@ -170,7 +174,10 @@ fn process_frame(
     shader_program.set_uniform_float(String::from("light_power"), light.power);
 
     Renderer::clear(&app.gl, 0.1, 0.1, 0.1);
-    Renderer::draw(&app.gl, &mesh, &shader_program, gl::TRIANGLES);
+    for mesh in meshes {
+        shader_program.set_uniform_matrix4(String::from("model"), &mesh.matrix);
+        Renderer::draw(&app.gl, &mesh, &shader_program, gl::TRIANGLES);
+    }
 
     imgui_sdl2.prepare_render(&ui, &app.window);
     renderer.render(ui);

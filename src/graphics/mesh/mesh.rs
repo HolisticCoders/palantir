@@ -1,6 +1,7 @@
 use crate::graphics::{IndexBuffer, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
 use crate::resources::{self, Resources};
-use cgmath::Vector3;
+use cgmath::prelude::*;
+use cgmath::{Matrix4, Vector3};
 use obj::load_obj;
 use std::error::Error;
 use std::fs::File;
@@ -18,6 +19,7 @@ pub struct Mesh {
     layout: VertexBufferLayout,
     index_buffer: IndexBuffer,
     vertex_array: VertexArray,
+    pub matrix: Matrix4<f32>,
 }
 
 impl Mesh {
@@ -27,6 +29,7 @@ impl Mesh {
             index_buffer: IndexBuffer::new(gl, indices),
             vertex_array: VertexArray::new(gl),
             layout: VertexBufferLayout::new(),
+            matrix: Matrix4::identity(),
         };
 
         mesh.layout.push::<f32>(3);
