@@ -8,6 +8,7 @@ pub struct Camera {
     local_matrix: Matrix4<f32>,
     target_matrix: Matrix4<f32>,
     aspect: f32,
+    distance: f32,
 }
 
 impl Camera {
@@ -19,6 +20,7 @@ impl Camera {
             aspect,
             local_matrix: Matrix4::<f32>::identity(),
             target_matrix: Matrix4::<f32>::identity(),
+            distance: 1.0,
         };
 
         camera.zoom(-3.0);
@@ -50,13 +52,16 @@ impl Camera {
         .into()
     }
     pub fn pan(&mut self, x: f32, y: f32) {
-        let vector = Vector3::new(x, -y, 0.0);
+        let mut vector = Vector3::new(x, -y, 0.0);
+        vector *= self.distance * 0.1;
         let transformation_matrix = Matrix4::from_translation(vector);
         self.target_matrix = transformation_matrix * self.target_matrix;
     }
     pub fn zoom(&mut self, amount: f32) {
-        let translation = Vector3::new(0.0, 0.0, amount);
+        let compensated_amount = amount * self.distance * 0.1;
+        let translation = Vector3::new(0.0, 0.0, compensated_amount);
         self.local_matrix = self.local_matrix * Matrix4::from_translation(translation);
+        self.distance = f32::abs(self.distance - compensated_amount).max(0.01);
     }
     pub fn rotate(&mut self, axis: Vector3<f32>, angle: f32) {
         let rotation = Matrix4::from_axis_angle(axis, Rad(angle));

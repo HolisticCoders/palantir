@@ -95,7 +95,7 @@ fn process_frame(
                 camera.set_aspect_ratio(x as f32 / y as f32);
             },
             Event::MouseMotion { xrel, yrel, .. } => {
-                const PAN_SENSITIVITY: f32 = 0.0075;
+                const PAN_SENSITIVITY: f32 = 0.005;
                 const ORBIT_SENSITIVITY: f32 = 0.01;
                 const ZOOM_SENSITIVITY: f32 = 0.01;
 
