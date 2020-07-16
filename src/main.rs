@@ -6,7 +6,7 @@ mod resources;
 use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
-use components::{Camera, Cube, Light, Plane};
+use components::{Camera, Light, Plane};
 use graphics::{Mesh, Renderer, ShaderProgram};
 use imgui::{im_str, Context, ImString};
 use sdl2::event::{Event, WindowEvent};
@@ -19,13 +19,9 @@ fn main() {
     let mut meshes = Vec::<Mesh>::new();
 
     let plane = Plane::new(&app.gl, 10.0);
-    let mut cube = Cube::new(&app.gl, 0.5);
-    cube.matrix = Matrix4::from_translation(Vector3::new(1.5, 0.5, 0.0));
-    let mut suzanne = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
-    suzanne.matrix = Matrix4::from_translation(Vector3::new(-1.5, 1.0, 0.0));
+    let obj = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
     meshes.push(plane);
-    meshes.push(cube);
-    meshes.push(suzanne);
+    meshes.push(obj);
 
     let mut shader_program =
         ShaderProgram::from_res(&app.gl, &app.resources, "shaders/default").unwrap();

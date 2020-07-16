@@ -11,15 +11,17 @@ impl Renderer {
     }
     pub fn draw(gl: &gl::Gl, mesh: &Mesh, shader: &ShaderProgram, draw_type: u32) {
         shader.bind();
-        mesh.vertex_array().bind();
-        mesh.index_buffer().bind();
-        unsafe {
-            gl.DrawElements(
-                draw_type,
-                mesh.index_buffer().count as i32,
-                gl::UNSIGNED_INT,
-                std::ptr::null_mut(),
-            )
+        for submesh in &mesh.submeshes {
+            submesh.vertex_array().bind();
+            submesh.index_buffer().bind();
+            unsafe {
+                gl.DrawElements(
+                    draw_type,
+                    submesh.index_buffer().count as i32,
+                    gl::UNSIGNED_INT,
+                    std::ptr::null_mut(),
+                )
+            }
         }
     }
 }

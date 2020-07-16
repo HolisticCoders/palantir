@@ -1,4 +1,4 @@
-use crate::graphics::{Mesh, Vertex};
+use crate::graphics::{Mesh, SubMesh, Vertex};
 use cgmath::Vector3;
 
 pub struct Cube;
@@ -53,7 +53,7 @@ impl Cube {
             20, 21, 22, // back
             20, 22, 23,
         ];
-
-        Mesh::new(gl, vertices, indices)
+        let submesh = SubMesh::new(gl, vertices, indices);
+        Mesh::new(vec![submesh])
     }
 }

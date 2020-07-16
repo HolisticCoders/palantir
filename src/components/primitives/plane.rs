@@ -1,5 +1,5 @@
-use crate::graphics::{Mesh, Vertex};
-use cgmath::{Vector2, Vector3};
+use crate::graphics::{Mesh, SubMesh, Vertex};
+use cgmath::Vector3;
 
 pub struct Plane;
 impl Plane {
@@ -27,6 +27,8 @@ impl Plane {
             },
         ];
         let indices = vec![0, 1, 2, 0, 2, 3];
-        Mesh::new(gl, vertices, indices)
+
+        let submesh = SubMesh::new(gl, vertices, indices);
+        Mesh::new(vec![submesh])
     }
 }
