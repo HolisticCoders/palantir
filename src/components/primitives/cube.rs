@@ -8,9 +8,9 @@ impl Cube {
         let vertices = vec![
             // Top
             Vertex { position: Vector3::new(size, size, size), normal: Vector3::new(0.0, 1.0, 0.0), },
-            Vertex { position: Vector3::new(-size, size, size), normal: Vector3::new(0.0, 1.0, 0.0), },
-            Vertex { position: Vector3::new(-size, size, -size), normal: Vector3::new(0.0, 1.0, 0.0), },
             Vertex { position: Vector3::new(size, size, -size), normal: Vector3::new(0.0, 1.0, 0.0), },
+            Vertex { position: Vector3::new(-size, size, -size), normal: Vector3::new(0.0, 1.0, 0.0), },
+            Vertex { position: Vector3::new(-size, size, size), normal: Vector3::new(0.0, 1.0, 0.0), },
             // Bottom
             Vertex { position: Vector3::new(size, -size, size), normal: Vector3::new(0.0, -1.0, 0.0), },
             Vertex { position: Vector3::new(-size, -size, size), normal: Vector3::new(0.0, -1.0, 0.0), },
@@ -18,24 +18,24 @@ impl Cube {
             Vertex { position: Vector3::new(size, -size, -size), normal: Vector3::new(0.0, -1.0, 0.0), },
             // Right
             Vertex { position: Vector3::new(size, size, size), normal: Vector3::new(1.0, 0.0, 0.0), },
-            Vertex { position: Vector3::new(size, size, -size), normal: Vector3::new(1.0, 0.0, 0.0), },
-            Vertex { position: Vector3::new(size, -size, -size), normal: Vector3::new(1.0, 0.0, 0.0), },
             Vertex { position: Vector3::new(size, -size, size), normal: Vector3::new(1.0, 0.0, 0.0), },
+            Vertex { position: Vector3::new(size, -size, -size), normal: Vector3::new(1.0, 0.0, 0.0), },
+            Vertex { position: Vector3::new(size, size, -size), normal: Vector3::new(1.0, 0.0, 0.0), },
             // Left
             Vertex { position: Vector3::new(-size, size, size), normal: Vector3::new(-1.0, 0.0, 0.0), },
             Vertex { position: Vector3::new(-size, size, -size), normal: Vector3::new(-1.0, 0.0, 0.0), },
             Vertex { position: Vector3::new(-size, -size, -size), normal: Vector3::new(-1.0, 0.0, 0.0), },
             Vertex { position: Vector3::new(-size, -size, size), normal: Vector3::new(-1.0, 0.0, 0.0), },
             // Front
-            Vertex { position: Vector3::new(size, size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
-            Vertex { position: Vector3::new(-size, size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
-            Vertex { position: Vector3::new(-size, -size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
-            Vertex { position: Vector3::new(size, -size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
-            // Back
             Vertex { position: Vector3::new(size, size, size), normal: Vector3::new(0.0, 0.0, 1.0), },
             Vertex { position: Vector3::new(-size, size, size), normal: Vector3::new(0.0, 0.0, 1.0), },
             Vertex { position: Vector3::new(-size, -size, size), normal: Vector3::new(0.0, 0.0, 1.0), },
             Vertex { position: Vector3::new(size, -size, size), normal: Vector3::new(0.0, 0.0, 1.0), },
+            // Back
+            Vertex { position: Vector3::new(size, size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
+            Vertex { position: Vector3::new(size, -size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
+            Vertex { position: Vector3::new(-size, -size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
+            Vertex { position: Vector3::new(-size, size, -size), normal: Vector3::new(0.0, 0.0, -1.0), },
         ];
 
         #[rustfmt::skip]
