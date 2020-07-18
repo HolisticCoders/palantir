@@ -1,6 +1,7 @@
 #version 330 core
 
 in VS_OUTPUT {
+    vec3 Color;
     vec3 FragmentPosition;
     vec3 FragmentNormal;
     vec3 LightColor;
@@ -18,5 +19,5 @@ void main()
     vec3 light_ambient = IN.LightAmbientStrength * IN.LightColor;
     vec3 light_diffuse = IN.LightColor * light_value * IN.LightPower;
 
-    Color = vec4(0.5* (light_ambient + light_diffuse), 1.0f);
+    Color = vec4(IN.Color * (light_ambient + light_diffuse), 1.0f);
 }

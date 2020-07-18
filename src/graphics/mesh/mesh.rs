@@ -1,7 +1,10 @@
-use crate::graphics::{IndexBuffer, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
+use crate::graphics::{
+    IndexBuffer, ShaderProgram, Vertex, VertexArray, VertexBuffer, VertexBufferLayout,
+};
 use crate::resources::{self, Resources};
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector3};
+use std::cell::RefCell;
 use std::error::Error;
 use tobj::load_obj;
 
@@ -12,6 +15,7 @@ pub enum MeshError {
     },
 }
 pub struct SubMesh {
+    pub shader_index: usize,
     vertex_buffer: VertexBuffer,
     layout: VertexBufferLayout,
     index_buffer: IndexBuffer,
@@ -20,6 +24,7 @@ pub struct SubMesh {
 impl SubMesh {
     pub fn new(gl: &gl::Gl, vertices: Vec<Vertex>, indices: Vec<u32>) -> Self {
         let mut submesh = SubMesh {
+            shader_index: 0,
             vertex_buffer: VertexBuffer::new(gl, vertices),
             layout: VertexBufferLayout::new(),
             index_buffer: IndexBuffer::new(gl, indices),
@@ -44,6 +49,7 @@ impl SubMesh {
 pub struct Mesh {
     pub submeshes: Vec<SubMesh>,
     pub matrix: Matrix4<f32>,
+    pub shaders: Vec<RefCell<ShaderProgram>>,
 }
 
 impl Mesh {
@@ -51,6 +57,7 @@ impl Mesh {
         Mesh {
             submeshes,
             matrix: Matrix4::identity(),
+            shaders: Vec::new(),
         }
     }
     pub fn from_res(gl: &gl::Gl, res: &Resources, name: &str) -> Result<Self, Box<dyn Error>> {

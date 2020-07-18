@@ -15,8 +15,9 @@ gl = {path = "lib/gl"}
 imgui = "0.4.0"
 imgui-opengl-renderer = "0.8.0"
 imgui-sdl2 = "0.11.0"
-tobj = "2.0.2"
+rand = "0.7.3"
 sdl2 = {version = "0.34.2", features = ["bundled", "static-link"]}
+tobj = "2.0.2"
 
 [features]
 gl_debug = ["gl/debug"]
