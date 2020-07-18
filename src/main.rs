@@ -6,7 +6,7 @@ mod resources;
 use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
-use components::{Camera, Light, Plane};
+use components::*;
 use graphics::{Mesh, Renderer, ShaderProgram};
 use imgui::{im_str, Context, ImString};
 use sdl2::event::{Event, WindowEvent};
@@ -14,14 +14,12 @@ use sdl2::mouse::MouseState;
 use std::time::Instant;
 
 fn main() {
-    let mut app = Application::new(900, 900).unwrap();
+    let mut app = Application::new(1280, 720).unwrap();
 
     let mut meshes = Vec::<Mesh>::new();
 
-    let plane = Plane::new(&app.gl, 10.0);
-    let obj = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
-    meshes.push(plane);
-    meshes.push(obj);
+    let primitive = Disk::new(&app.gl, 1.0, 10);
+    meshes.push(primitive);
 
     let mut shader_program =
         ShaderProgram::from_res(&app.gl, &app.resources, "shaders/default").unwrap();
