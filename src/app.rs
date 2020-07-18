@@ -24,6 +24,7 @@ impl Application {
 
         gl_attributes.set_context_profile(sdl2::video::GLProfile::Core);
         gl_attributes.set_context_version(3, 0);
+        gl_attributes.set_multisample_samples(4);
 
         let window = video
             .window("Palantir", width, height)
