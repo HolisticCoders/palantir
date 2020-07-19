@@ -67,7 +67,7 @@ impl Mesh {
 
         let mut submeshes = Vec::<SubMesh>::new();
         for model in models {
-            let obj_mesh = &model.mesh; // TODO: implement support loading multiple objects from an obj
+            let obj_mesh = &model.mesh;
             let mut vertices: Vec<Vertex> = Vec::new();
             let indices = obj_mesh.indices.clone();
             for i in 0..obj_mesh.positions.len() / 3 {
