@@ -1,3 +1,4 @@
+use crate::graphics::Texture;
 use crate::resources::{self, Resources};
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector3};
@@ -100,6 +101,7 @@ pub struct ShaderProgram {
     gl: gl::Gl,
     id: gl::types::GLuint,
     uniform_location_cache: HashMap<String, i32>,
+    texture: Option<Texture>,
 }
 
 impl ShaderProgram {
@@ -174,10 +176,19 @@ impl ShaderProgram {
             gl: gl.clone(),
             id: program_id,
             uniform_location_cache: HashMap::new(),
+            texture: None,
         })
     }
 
+    pub fn set_texture(&mut self, texture: Texture) {
+        self.set_uniform_bool("u_use_texture".to_string(), true);
+        self.texture = Some(texture);
+    }
     pub fn bind(&self) {
+        match &self.texture {
+            Some(texture) => texture.bind(),
+            None => unsafe { self.gl.BindTexture(gl::TEXTURE_2D, 0) },
+        }
         unsafe {
             self.gl.UseProgram(self.id);
         }
@@ -187,6 +198,12 @@ impl ShaderProgram {
         unsafe {
             let name = self.get_uniform_location(name);
             self.gl.UniformMatrix4fv(name, 1, gl::FALSE, value.as_ptr())
+        }
+    }
+    pub fn set_uniform_bool(&mut self, name: String, value: bool) {
+        unsafe {
+            let name = self.get_uniform_location(name);
+            self.gl.Uniform1ui(name, value as u32)
         }
     }
     pub fn set_uniform_float(&mut self, name: String, value: f32) {

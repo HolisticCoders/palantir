@@ -26,7 +26,10 @@ impl Renderer {
             if mesh.shaders.is_empty() {
                 shader = self.default_shader.borrow_mut();
             } else {
-                shader = mesh.shaders[submesh.shader_index].borrow_mut();
+                match submesh.shader_index {
+                    Some(i) => shader = mesh.shaders[i].borrow_mut(),
+                    None => shader = self.default_shader.borrow_mut(),
+                }
             }
             shader.bind();
 

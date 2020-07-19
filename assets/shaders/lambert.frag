@@ -6,6 +6,7 @@ uniform vec3 u_light_color;
 uniform float u_light_power;
 uniform float u_light_ambient_strength;
 uniform sampler2D u_texture;
+uniform bool u_use_texture;
 
 in VS_OUTPUT {
     vec3 fragment_normal;
@@ -21,6 +22,11 @@ void main()
     vec3 light_ambient = u_light_ambient_strength * u_light_color;
     vec3 light_diffuse = u_light_color * light_value * u_light_power;
 
-    vec4 image = texture(u_texture, IN.texture_coordinates);
-    fragment_color = image * vec4(light_ambient + light_diffuse, 1.0);
+    vec4 color;
+    if (u_use_texture) {
+        color = texture(u_texture, IN.texture_coordinates);
+    } else {
+        color = vec4(u_color, 1.0);
+    }
+    fragment_color = color * vec4(light_ambient + light_diffuse, 1.0);
 }

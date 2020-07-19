@@ -7,7 +7,7 @@ use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
 use components::*;
-use graphics::{Mesh, Renderer, ShaderProgram, Texture};
+use graphics::{Mesh, Renderer, ShaderProgram};
 use imgui::{im_str, Context, ImString};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
@@ -16,20 +16,16 @@ use std::time::Instant;
 fn main() {
     let mut app = Application::new(1280, 720).unwrap();
 
-    // load image, create texture and generate mipmaps
-    let texture_path = app.resources.resource_name_to_path("textures/uv-grid.png");
-    let _texture = Texture::from_path(&app.gl, texture_path);
-
     let mut default_shader =
-        ShaderProgram::from_res(&app.gl, &app.resources, "shaders/lambert").unwrap();
+        ShaderProgram::from_res(&app.gl, &app.resources, "shaders/flat").unwrap();
     default_shader.bind();
     default_shader.set_uniform_vector3("u_color".to_string(), &Vector3::<f32>::new(1.0, 0.0, 1.0));
     let renderer = Renderer::new(&app.gl, default_shader);
 
     let mut meshes = Vec::<Mesh>::new();
 
-    let primitive = Mesh::from_res(&app.gl, &app.resources, "meshes/plane.obj").unwrap();
-    meshes.push(primitive);
+    let plane = Mesh::from_res(&app.gl, &app.resources, "meshes/plane.obj").unwrap();
+    meshes.push(plane);
 
     let obj = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
     meshes.push(obj);

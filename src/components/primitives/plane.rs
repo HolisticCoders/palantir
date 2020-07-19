@@ -31,7 +31,7 @@ impl Plane {
         ];
         let indices = vec![0, 1, 2, 0, 2, 3];
 
-        let submesh = SubMesh::new(gl, vertices, indices);
+        let submesh = SubMesh::new(gl, vertices, indices, None);
         Mesh::new(vec![submesh])
     }
 }

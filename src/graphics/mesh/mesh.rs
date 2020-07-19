@@ -1,5 +1,5 @@
 use crate::graphics::{
-    IndexBuffer, ShaderProgram, Vertex, VertexArray, VertexBuffer, VertexBufferLayout,
+    IndexBuffer, ShaderProgram, Texture, Vertex, VertexArray, VertexBuffer, VertexBufferLayout,
 };
 use crate::resources::Resources;
 use cgmath::prelude::*;
@@ -9,16 +9,21 @@ use std::error::Error;
 use tobj::load_obj;
 
 pub struct SubMesh {
-    pub shader_index: usize,
+    pub shader_index: Option<usize>,
     vertex_buffer: VertexBuffer,
     layout: VertexBufferLayout,
     index_buffer: IndexBuffer,
     vertex_array: VertexArray,
 }
 impl SubMesh {
-    pub fn new(gl: &gl::Gl, vertices: Vec<Vertex>, indices: Vec<u32>) -> Self {
+    pub fn new(
+        gl: &gl::Gl,
+        vertices: Vec<Vertex>,
+        indices: Vec<u32>,
+        shader_index: Option<usize>,
+    ) -> Self {
         let mut submesh = SubMesh {
-            shader_index: 0,
+            shader_index,
             vertex_buffer: VertexBuffer::new(gl, vertices),
             layout: VertexBufferLayout::new(),
             index_buffer: IndexBuffer::new(gl, indices),
@@ -59,7 +64,7 @@ impl Mesh {
     pub fn from_res(gl: &gl::Gl, res: &Resources, name: &str) -> Result<Self, Box<dyn Error>> {
         let path = res.resource_name_to_path(name);
 
-        let (models, _) = load_obj(path, true)?;
+        let (models, materials) = load_obj(path, true)?;
 
         let mut submeshes = Vec::<SubMesh>::new();
         for model in models {
@@ -85,8 +90,25 @@ impl Mesh {
                     uv,
                 });
             }
-            submeshes.push(SubMesh::new(&gl, vertices, indices));
+            let submesh = SubMesh::new(&gl, vertices, indices, obj_mesh.material_id);
+            submeshes.push(submesh);
         }
-        Ok(Mesh::new(submeshes))
+        let mut mesh = Mesh::new(submeshes);
+
+        for material in materials {
+            let mut shader = ShaderProgram::from_res(&gl, &res, "shaders/lambert").unwrap();
+            shader.bind();
+            shader.set_uniform_vector3("u_color".to_string(), &Vector3::<f32>::new(1.0, 1.0, 1.0));
+
+            let texture_path = material.diffuse_texture;
+            if texture_path != "" {
+                let full_path = res.resource_name_to_path(&texture_path.replace("res://", ""));
+                let texture = Texture::new(gl, full_path);
+                shader.set_texture(texture);
+            }
+
+            mesh.shaders.push(RefCell::new(shader));
+        }
+        Ok(mesh)
     }
 }
