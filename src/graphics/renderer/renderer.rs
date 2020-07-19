@@ -32,18 +32,18 @@ impl Renderer {
             }
             shader.bind();
 
-            shader.set_uniform_matrix4(String::from("model"), &mesh.matrix);
-            shader.set_uniform_matrix4(String::from("view"), &camera.view_matrix());
-            shader.set_uniform_matrix4(String::from("projection"), &camera.projection_matrix());
+            shader.set_uniform_matrix4(String::from("u_model"), &mesh.matrix);
+            shader.set_uniform_matrix4(String::from("u_view"), &camera.view_matrix());
+            shader.set_uniform_matrix4(String::from("u_projection"), &camera.projection_matrix());
 
             // TODO: only set these on supported shaders
-            shader.set_uniform_vector3(String::from("light_direction"), &light.direction());
-            shader.set_uniform_vector3(String::from("light_color"), &light.color);
+            shader.set_uniform_vector3(String::from("u_light_direction"), &light.direction());
+            shader.set_uniform_vector3(String::from("u_light_color"), &light.color);
             shader.set_uniform_float(
-                String::from("light_ambient_strength"),
+                String::from("u_light_ambient_strength"),
                 light.ambient_strength,
             );
-            shader.set_uniform_float(String::from("light_power"), light.power);
+            shader.set_uniform_float(String::from("u_light_power"), light.power);
 
             submesh.vertex_array().bind();
             submesh.index_buffer().bind();

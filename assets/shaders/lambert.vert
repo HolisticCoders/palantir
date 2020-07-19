@@ -1,40 +1,40 @@
 #version 330 core
 
-layout (location = 0) in vec3 Position;
-layout (location = 1) in vec3 Normal;
+layout (location = 0) in vec3 va_position;
+layout (location = 1) in vec3 va_normal;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-uniform vec3 color;
-uniform vec3 light_direction;
-uniform vec3 light_color;
-uniform float light_power;
-uniform float light_ambient_strength;
+uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_projection;
+uniform vec3 u_color;
+uniform vec3 u_light_direction;
+uniform vec3 u_light_color;
+uniform float u_light_power;
+uniform float u_light_ambient_strength;
 
 out VS_OUTPUT {
-    vec3 Color;
-    vec3 FragmentPosition;
-    vec3 FragmentNormal;
-    vec3 LightColor;
-    vec3 LightDirection;
-    float LightPower;
-    float LightAmbientStrength;
+    vec3 color;
+    vec3 fragment_position;
+    vec3 fragment_normal;
+    vec3 light_color;
+    vec3 light_direction;
+    float light_power;
+    float light_ambient_strength;
 } OUT;
 
 void main()
 {
 
-    vec4 vertex_position = model * vec4(Position, 1.0);
-    gl_Position = projection * view * vertex_position;
+    vec4 vertex_position = u_model * vec4(va_position, 1.0);
+    gl_Position = u_projection * u_view * vertex_position;
 
-    OUT.Color = color;
+    OUT.color = u_color;
 
-    OUT.FragmentPosition = vec3(vertex_position);
-    OUT.FragmentNormal = Normal;
+    OUT.fragment_position = vec3(vertex_position);
+    OUT.fragment_normal = va_normal;
 
-    OUT.LightAmbientStrength = light_ambient_strength;
-    OUT.LightDirection = light_direction;
-    OUT.LightColor = light_color;
-    OUT.LightPower = light_power;
+    OUT.light_ambient_strength = u_light_ambient_strength;
+    OUT.light_direction = u_light_direction;
+    OUT.light_color = u_light_color;
+    OUT.light_power = u_light_power;
 }

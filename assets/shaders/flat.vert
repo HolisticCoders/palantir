@@ -1,21 +1,22 @@
 #version 330 core
 
-layout (location = 0) in vec3 Position;
-layout (location = 1) in vec3 Normal;
+layout (location = 0) in vec3 va_position;
+layout (location = 1) in vec3 va_normal;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-uniform vec3 color;
+uniform mat4 u_model;
+uniform mat4 u_view;
+uniform mat4 u_projection;
+uniform vec3 u_color;
 
 out VS_OUTPUT {
-    vec3 Color;
+    vec3 color;
 } OUT;
 
 
 void main()
 {
-    vec4 vertex_position = model * vec4(Position, 1.0);
-    OUT.Color = color;
-    gl_Position = projection * view * vertex_position;
+    OUT.color = u_color;
+
+    vec4 vertex_position = u_model * vec4(va_position, 1.0);
+    gl_Position = u_projection * u_view * vertex_position;
 }

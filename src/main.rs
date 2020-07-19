@@ -23,7 +23,8 @@ fn main() {
 
     let mut default_shader =
         ShaderProgram::from_res(&app.gl, &app.resources, "shaders/flat").unwrap();
-    default_shader.set_uniform_vector3("color".to_string(), &Vector3::<f32>::new(1.0, 0.0, 1.0));
+    default_shader.bind();
+    default_shader.set_uniform_vector3("u_color".to_string(), &Vector3::<f32>::new(1.0, 0.0, 1.0));
     let renderer = Renderer::new(&app.gl, default_shader);
 
     let mut meshes = Vec::<Mesh>::new();
@@ -40,7 +41,7 @@ fn main() {
         let r = rng.gen_range(0.0, 1.0);
         let g = rng.gen_range(0.0, 1.0);
         let b = rng.gen_range(0.0, 1.0);
-        shader_program.set_uniform_vector3("color".to_string(), &Vector3::new(r, g, b));
+        shader_program.set_uniform_vector3("u_color".to_string(), &Vector3::new(r, g, b));
         obj.shaders.push(RefCell::new(shader_program));
         submesh.shader_index = i;
     }
