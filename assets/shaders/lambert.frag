@@ -1,23 +1,23 @@
 #version 330 core
 
+uniform vec3 u_color;
+uniform vec3 u_light_direction;
+uniform vec3 u_light_color;
+uniform float u_light_power;
+uniform float u_light_ambient_strength;
+
 in VS_OUTPUT {
-    vec3 color;
-    vec3 fragment_position;
     vec3 fragment_normal;
-    vec3 light_color;
-    vec3 light_direction;
-    float light_power;
-    float light_ambient_strength;
 } IN;
 
-out vec4 Color;
+out vec4 fragment_color;
 
 void main()
 {
-    float light_value = max(dot(IN.fragment_normal, IN.light_direction), 0.0);
+    float light_value = max(dot(IN.fragment_normal, u_light_direction), 0.0);
 
-    vec3 light_ambient = IN.light_ambient_strength * IN.light_color;
-    vec3 light_diffuse = IN.light_color * light_value * IN.light_power;
+    vec3 light_ambient = u_light_ambient_strength * u_light_color;
+    vec3 light_diffuse = u_light_color * light_value * u_light_power;
 
-    Color = vec4(IN.color * (light_ambient + light_diffuse), 1.0f);
+    fragment_color = vec4(u_color * (light_ambient + light_diffuse), 1.0f);
 }
