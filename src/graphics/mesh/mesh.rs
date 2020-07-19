@@ -3,7 +3,7 @@ use crate::graphics::{
 };
 use crate::resources::Resources;
 use cgmath::prelude::*;
-use cgmath::{Matrix4, Vector3};
+use cgmath::{Matrix4, Vector2, Vector3};
 use std::cell::RefCell;
 use std::error::Error;
 use tobj::load_obj;
@@ -25,8 +25,10 @@ impl SubMesh {
             vertex_array: VertexArray::new(gl),
         };
 
-        submesh.layout.push::<f32>(3);
-        submesh.layout.push::<f32>(3);
+        submesh.layout.push::<f32>(3); // Position
+        submesh.layout.push::<f32>(3); // Normal
+        submesh.layout.push::<f32>(2); // UV coordinates
+
         submesh
             .vertex_array
             .add_buffer(&submesh.vertex_buffer, &submesh.layout);
@@ -75,7 +77,13 @@ impl Mesh {
                     obj_mesh.normals[i * 3 + 1],
                     obj_mesh.normals[i * 3 + 2],
                 );
-                vertices.push(Vertex { position, normal });
+                let uv =
+                    Vector2::<f32>::new(obj_mesh.texcoords[i * 2], obj_mesh.texcoords[i * 2 + 1]);
+                vertices.push(Vertex {
+                    position,
+                    normal,
+                    uv,
+                });
             }
             submeshes.push(SubMesh::new(&gl, vertices, indices));
         }

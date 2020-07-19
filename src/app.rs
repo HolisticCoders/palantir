@@ -42,6 +42,7 @@ impl Application {
             gl.Viewport(0, 0, width as i32, height as i32);
             gl.Enable(gl::DEPTH_TEST);
             gl.Enable(gl::CULL_FACE);
+            gl.Enable(gl::FRAMEBUFFER_SRGB);
         }
 
         Ok(Application {

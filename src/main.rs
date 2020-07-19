@@ -8,44 +8,69 @@ use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
 use components::*;
 use graphics::{Mesh, Renderer, ShaderProgram};
+use image::GenericImageView;
 use imgui::{im_str, Context, ImString};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
-use std::cell::RefCell;
+use std::os::raw::c_void;
 use std::time::Instant;
-
-use rand::Rng;
 
 fn main() {
     let mut app = Application::new(1280, 720).unwrap();
 
-    let mut rng = rand::thread_rng();
+    // load image, create texture and generate mipmaps
+    let texture_path = app.resources.resource_name_to_path("textures/uv-grid.png");
+    let texture_image = image::open(texture_path)
+        .expect("Failed to load texture.")
+        .flipv();
+    let data = texture_image.to_bytes();
+
+    let _texture = unsafe {
+        let mut texture = 0;
+
+        app.gl.GenTextures(1, &mut texture);
+        app.gl.BindTexture(gl::TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+                                                     // set the texture wrapping parameters
+
+        app.gl
+            .TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32); // set texture wrapping to gl::REPEAT (default wrapping method)
+        app.gl
+            .TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
+
+        // set texture filtering parameters
+        app.gl
+            .TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
+        app.gl
+            .TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
+
+        app.gl.TexImage2D(
+            gl::TEXTURE_2D,
+            0,
+            gl::RGB as i32,
+            texture_image.width() as i32,
+            texture_image.height() as i32,
+            0,
+            gl::RGBA,
+            gl::UNSIGNED_BYTE,
+            &data[0] as *const u8 as *const c_void,
+        );
+        app.gl.GenerateMipmap(gl::TEXTURE_2D);
+
+        texture
+    };
 
     let mut default_shader =
-        ShaderProgram::from_res(&app.gl, &app.resources, "shaders/flat").unwrap();
+        ShaderProgram::from_res(&app.gl, &app.resources, "shaders/lambert").unwrap();
     default_shader.bind();
     default_shader.set_uniform_vector3("u_color".to_string(), &Vector3::<f32>::new(1.0, 0.0, 1.0));
     let renderer = Renderer::new(&app.gl, default_shader);
 
     let mut meshes = Vec::<Mesh>::new();
 
-    let primitive = Plane::new(&app.gl, 1.0);
+    let primitive = Mesh::from_res(&app.gl, &app.resources, "meshes/plane.obj").unwrap();
     meshes.push(primitive);
 
-    let mut obj = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
-
-    for (i, submesh) in &mut obj.submeshes.iter_mut().enumerate() {
-        let mut shader_program =
-            ShaderProgram::from_res(&app.gl, &app.resources, "shaders/lambert").unwrap();
-        shader_program.bind();
-        let r = rng.gen_range(0.0, 1.0);
-        let g = rng.gen_range(0.0, 1.0);
-        let b = rng.gen_range(0.0, 1.0);
-        shader_program.set_uniform_vector3("u_color".to_string(), &Vector3::new(r, g, b));
-        obj.shaders.push(RefCell::new(shader_program));
-        submesh.shader_index = i;
-    }
-
+    let obj = Mesh::from_res(&app.gl, &app.resources, "meshes/suzanne.obj").unwrap();
     meshes.push(obj);
 
     let (width, height) = app.window.size();
