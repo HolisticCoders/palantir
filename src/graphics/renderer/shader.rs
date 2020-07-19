@@ -83,14 +83,6 @@ impl Shader {
         Ok(Shader { gl: gl.clone(), id })
     }
 
-    pub fn from_vert_source(gl: &gl::Gl, source: &CStr) -> Result<Shader, String> {
-        Shader::from_source(gl, source, gl::VERTEX_SHADER)
-    }
-
-    pub fn from_frag_source(gl: &gl::Gl, source: &CStr) -> Result<Shader, String> {
-        Shader::from_source(gl, source, gl::FRAGMENT_SHADER)
-    }
-
     pub fn id(&self) -> gl::types::GLuint {
         self.id
     }
@@ -185,20 +177,12 @@ impl ShaderProgram {
         })
     }
 
-    pub fn id(&self) -> gl::types::GLuint {
-        self.id
-    }
-
     pub fn bind(&self) {
         unsafe {
             self.gl.UseProgram(self.id);
         }
     }
-    pub fn unbind(&self) {
-        unsafe {
-            self.gl.UseProgram(0);
-        }
-    }
+
     pub fn set_uniform_matrix4(&mut self, name: String, value: &Matrix4<f32>) {
         unsafe {
             let name = self.get_uniform_location(name);

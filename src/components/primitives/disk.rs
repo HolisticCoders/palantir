@@ -1,7 +1,10 @@
 use crate::graphics::{Mesh, SubMesh, Vertex};
 use cgmath::Vector3;
 
+#[allow(dead_code)]
 pub struct Disk;
+
+#[allow(dead_code)]
 impl Disk {
     pub fn new(gl: &gl::Gl, radius: f32, resolution: u32) -> Mesh {
         let vertices = Disk::generate_vertices(radius, resolution, true);

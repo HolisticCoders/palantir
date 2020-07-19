@@ -1,7 +1,5 @@
 use crate::components::{Camera, Light};
 use crate::graphics::{Mesh, ShaderProgram};
-use crate::resources::Resources;
-use cgmath::Vector3;
 use std::cell::RefCell;
 
 pub struct Renderer {

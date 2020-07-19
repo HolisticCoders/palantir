@@ -1,7 +1,10 @@
 use crate::graphics::{Mesh, SubMesh, Vertex};
 use cgmath::Vector3;
 
+#[allow(dead_code)]
 pub struct Cube;
+
+#[allow(dead_code)]
 impl Cube {
     pub fn new(gl: &gl::Gl, size: f32) -> Mesh {
         #[rustfmt::skip]

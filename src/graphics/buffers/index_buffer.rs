@@ -28,11 +28,6 @@ impl IndexBuffer {
             self.gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.id);
         }
     }
-    pub fn unbind(&self) {
-        unsafe {
-            self.gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, 0);
-        }
-    }
 }
 
 impl Drop for IndexBuffer {
@@ -42,4 +37,3 @@ impl Drop for IndexBuffer {
         }
     }
 }
-

@@ -26,9 +26,6 @@ impl VertexBuffer {
     pub fn bind(&self) {
         unsafe { self.gl.BindBuffer(gl::ARRAY_BUFFER, self.id) }
     }
-    pub fn unbind(&self) {
-        unsafe { self.gl.BindBuffer(gl::ARRAY_BUFFER, 0) }
-    }
 }
 
 impl Drop for VertexBuffer {

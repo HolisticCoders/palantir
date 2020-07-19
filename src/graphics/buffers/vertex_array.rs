@@ -39,9 +39,4 @@ impl VertexArray {
             self.gl.BindVertexArray(self.id);
         }
     }
-    pub fn unbind(&self) {
-        unsafe {
-            self.gl.BindVertexArray(0);
-        }
-    }
 }

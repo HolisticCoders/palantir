@@ -1,19 +1,13 @@
 use crate::graphics::{
     IndexBuffer, ShaderProgram, Vertex, VertexArray, VertexBuffer, VertexBufferLayout,
 };
-use crate::resources::{self, Resources};
+use crate::resources::Resources;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector3};
 use std::cell::RefCell;
 use std::error::Error;
 use tobj::load_obj;
 
-pub enum MeshError {
-    ResourceLoad {
-        name: String,
-        inner: resources::ResourceError,
-    },
-}
 pub struct SubMesh {
     pub shader_index: usize,
     vertex_buffer: VertexBuffer,
