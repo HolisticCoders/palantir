@@ -7,12 +7,10 @@ use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
 use components::*;
-use graphics::{Mesh, Renderer, ShaderProgram};
-use image::GenericImageView;
+use graphics::{Mesh, Renderer, ShaderProgram, Texture};
 use imgui::{im_str, Context, ImString};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
-use std::os::raw::c_void;
 use std::time::Instant;
 
 fn main() {
@@ -20,44 +18,7 @@ fn main() {
 
     // load image, create texture and generate mipmaps
     let texture_path = app.resources.resource_name_to_path("textures/uv-grid.png");
-    let texture_image = image::open(texture_path)
-        .expect("Failed to load texture.")
-        .flipv();
-    let data = texture_image.to_bytes();
-
-    let _texture = unsafe {
-        let mut texture = 0;
-
-        app.gl.GenTextures(1, &mut texture);
-        app.gl.BindTexture(gl::TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-                                                     // set the texture wrapping parameters
-
-        app.gl
-            .TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE as i32); // set texture wrapping to gl::REPEAT (default wrapping method)
-        app.gl
-            .TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE as i32);
-
-        // set texture filtering parameters
-        app.gl
-            .TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR as i32);
-        app.gl
-            .TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR as i32);
-
-        app.gl.TexImage2D(
-            gl::TEXTURE_2D,
-            0,
-            gl::RGB as i32,
-            texture_image.width() as i32,
-            texture_image.height() as i32,
-            0,
-            gl::RGBA,
-            gl::UNSIGNED_BYTE,
-            &data[0] as *const u8 as *const c_void,
-        );
-        app.gl.GenerateMipmap(gl::TEXTURE_2D);
-
-        texture
-    };
+    let _texture = Texture::from_path(&app.gl, texture_path);
 
     let mut default_shader =
         ShaderProgram::from_res(&app.gl, &app.resources, "shaders/lambert").unwrap();
