@@ -5,8 +5,10 @@ pub struct Camera {
     pub fov: f32,
     pub near_clip: f32,
     pub far_clip: f32,
-    local_matrix: Matrix4<f32>,
     target_matrix: Matrix4<f32>,
+    zoom_matrix: Matrix4<f32>,
+    rotatey_matrix: Matrix4<f32>,
+    rotatex_matrix: Matrix4<f32>,
     aspect: f32,
     distance: f32,
 }
@@ -18,8 +20,10 @@ impl Camera {
             near_clip,
             far_clip,
             aspect,
-            local_matrix: Matrix4::<f32>::identity(),
             target_matrix: Matrix4::<f32>::identity(),
+            zoom_matrix: Matrix4::<f32>::identity(),
+            rotatey_matrix: Matrix4::<f32>::identity(),
+            rotatex_matrix: Matrix4::<f32>::identity(),
             distance: 1.0,
         };
 
@@ -39,7 +43,7 @@ impl Camera {
         camera
     }
     pub fn view_matrix(&self) -> Matrix4<f32> {
-        self.local_matrix * self.target_matrix
+        self.zoom_matrix * self.rotatex_matrix * self.rotatey_matrix * self.target_matrix
     }
     pub fn projection_matrix(&self) -> Matrix4<f32> {
         PerspectiveFov {
@@ -54,22 +58,26 @@ impl Camera {
     pub fn pan(&mut self, x: f32, y: f32) {
         let mut vector = Vector3::new(x, -y, 0.0);
         vector *= self.distance * 0.1;
-        let transformation_matrix = Matrix4::from_translation(vector);
-        self.target_matrix = transformation_matrix * self.target_matrix;
+        let translation_matrix = Matrix4::from_translation(vector);
+        let orientation_matrix: Matrix4<f32> = self.rotatex_matrix * self.rotatey_matrix;
+        self.target_matrix = self.target_matrix
+            * orientation_matrix.inverse_transform().unwrap()
+            * translation_matrix
+            * orientation_matrix;
     }
     pub fn zoom(&mut self, amount: f32) {
         let compensated_amount = amount * self.distance * 0.1;
         let translation = Vector3::new(0.0, 0.0, compensated_amount);
-        self.local_matrix = self.local_matrix * Matrix4::from_translation(translation);
+        self.zoom_matrix = self.zoom_matrix * Matrix4::from_translation(translation);
         self.distance = f32::abs(self.distance - compensated_amount).max(0.01);
     }
     pub fn rotate(&mut self, axis: Vector3<f32>, angle: f32) {
         let rotation = Matrix4::from_axis_angle(axis, Rad(angle));
 
         if axis == Vector3::<f32>::unit_y() {
-            self.target_matrix = self.target_matrix * rotation;
+            self.rotatey_matrix = self.rotatey_matrix * rotation;
         } else {
-            self.target_matrix = rotation * self.target_matrix;
+            self.rotatex_matrix = self.rotatex_matrix * rotation;
         }
     }
     pub fn focus(&mut self) {
