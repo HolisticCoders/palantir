@@ -1,20 +1,18 @@
-use crate::graphics::Vertex;
+use crate::vertex::Vertex;
 
 pub struct VertexBuffer {
     id: u32,
-    gl: gl::Gl,
 }
 
 impl VertexBuffer {
-    pub fn new(gl: &gl::Gl, vertices: Vec<Vertex>) -> Self {
+    pub fn new(vertices: Vec<Vertex>) -> Self {
         let mut buffer = VertexBuffer {
             id: 0,
-            gl: gl.clone(),
         };
         unsafe {
-            gl.GenBuffers(1, &mut buffer.id);
-            gl.BindBuffer(gl::ARRAY_BUFFER, buffer.id);
-            gl.BufferData(
+            gl::GenBuffers(1, &mut buffer.id);
+            gl::BindBuffer(gl::ARRAY_BUFFER, buffer.id);
+            gl::BufferData(
                 gl::ARRAY_BUFFER,
                 (vertices.len() * std::mem::size_of::<Vertex>()) as gl::types::GLsizeiptr,
                 vertices.as_ptr() as *const gl::types::GLvoid,
@@ -24,14 +22,14 @@ impl VertexBuffer {
         buffer
     }
     pub fn bind(&self) {
-        unsafe { self.gl.BindBuffer(gl::ARRAY_BUFFER, self.id) }
+        unsafe { gl::BindBuffer(gl::ARRAY_BUFFER, self.id) }
     }
 }
 
 impl Drop for VertexBuffer {
     fn drop(&mut self) {
         unsafe {
-            self.gl.DeleteBuffers(1, &self.id);
+            gl::DeleteBuffers(1, &self.id);
         }
     }
 }

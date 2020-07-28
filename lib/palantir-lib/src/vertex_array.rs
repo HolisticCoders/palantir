@@ -1,17 +1,13 @@
-use crate::graphics::{VertexBuffer, VertexBufferLayout};
+use crate::vertex_buffer::{VertexBuffer, VertexBufferLayout};
 
 pub struct VertexArray {
     id: u32,
-    gl: gl::Gl,
 }
 
 impl VertexArray {
-    pub fn new(gl: &gl::Gl) -> Self {
-        let mut vertex_array = VertexArray {
-            id: 0,
-            gl: gl.clone(),
-        };
-        unsafe { gl.GenVertexArrays(1, &mut vertex_array.id) }
+    pub fn new() -> Self {
+        let mut vertex_array = VertexArray { id: 0 };
+        unsafe { gl::GenVertexArrays(1, &mut vertex_array.id) }
         vertex_array
     }
     pub fn add_buffer(&self, vertex_buffer: &VertexBuffer, layout: &VertexBufferLayout) {
@@ -21,8 +17,8 @@ impl VertexArray {
         for (i, element) in layout.elements.iter().enumerate() {
             let i = i as u32; //FIXME: should be defined in the for statement
             unsafe {
-                self.gl.EnableVertexAttribArray(i);
-                self.gl.VertexAttribPointer(
+                gl::EnableVertexAttribArray(i);
+                gl::VertexAttribPointer(
                     i,
                     element.count as i32,
                     element.gl_type,
@@ -36,7 +32,7 @@ impl VertexArray {
     }
     pub fn bind(&self) {
         unsafe {
-            self.gl.BindVertexArray(self.id);
+            gl::BindVertexArray(self.id);
         }
     }
 }

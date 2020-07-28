@@ -1,12 +1,12 @@
-use crate::graphics::{Mesh, SubMesh, Vertex};
 use cgmath::{Vector2, Vector3};
+use palantir_lib::{Mesh, SubMesh, Vertex};
 
 #[allow(dead_code)]
 pub struct Plane;
 
 #[allow(dead_code)]
 impl Plane {
-    pub fn new(gl: &gl::Gl, size: f32) -> Mesh {
+    pub fn new(size: f32) -> Mesh {
         let vertices = vec![
             Vertex {
                 position: Vector3::new(size, 0.0, size),
@@ -31,7 +31,7 @@ impl Plane {
         ];
         let indices = vec![0, 1, 2, 0, 2, 3];
 
-        let submesh = SubMesh::new(gl, vertices, indices, None);
+        let submesh = SubMesh::new(vertices, indices, None);
         Mesh::new(vec![submesh])
     }
 }

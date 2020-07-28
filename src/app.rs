@@ -1,11 +1,11 @@
 use crate::resources::Resources;
+use gl;
 use std::error::Error;
 use std::path::Path;
 
 pub struct Application {
     pub resources: Resources,
     pub window: sdl2::video::Window,
-    pub gl: gl::Gl,
     pub events: sdl2::EventPump,
     pub video: sdl2::VideoSubsystem,
     _sdl: sdl2::Sdl,
@@ -34,20 +34,19 @@ impl Application {
             .build()?;
 
         let _context = window.gl_create_context()?;
-        let gl = gl::Gl::load_with(|s| video.gl_get_proc_address(s) as *const std::os::raw::c_void);
+        gl::load_with(|s| video.gl_get_proc_address(s) as *const std::os::raw::c_void);
 
         let events = _sdl.event_pump()?;
 
         unsafe {
-            gl.Viewport(0, 0, width as i32, height as i32);
-            gl.Enable(gl::DEPTH_TEST);
-            gl.Enable(gl::CULL_FACE);
+            gl::Viewport(0, 0, width as i32, height as i32);
+            gl::Enable(gl::DEPTH_TEST);
+            gl::Enable(gl::CULL_FACE);
         }
 
         Ok(Application {
             resources,
             window,
-            gl,
             events,
             video,
             _sdl,

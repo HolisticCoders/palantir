@@ -242,7 +242,9 @@ dependencies = [
 
 [[package]]
 name = "gl"
-version = "0.1.0"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a94edab108827d67608095e269cf862e60d920f144a5026d3dbcfd8b877fb404"
 dependencies = [
  "gl_generator 0.14.0",
 ]
@@ -495,10 +497,20 @@ dependencies = [
  "imgui",
  "imgui-opengl-renderer",
  "imgui-sdl2",
+ "palantir-lib",
  "rand 0.7.3",
  "sdl2",
  "tobj",
  "walkdir",
+]
+
+[[package]]
+name = "palantir-lib"
+version = "0.1.0"
+dependencies = [
+ "cgmath",
+ "gl",
+ "image",
 ]
 
 [[package]]

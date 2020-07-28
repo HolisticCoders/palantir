@@ -1,5 +1,4 @@
-use crate::graphics::Texture;
-use crate::resources::{self, Resources};
+use crate::Texture;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector3};
 use std::collections::HashMap;
@@ -7,32 +6,26 @@ use std::ffi::{CStr, CString};
 
 #[derive(Debug)]
 pub enum ShaderError {
-    ResourceLoad {
-        name: String,
-        inner: resources::ResourceError,
-    },
-    CanNotDetermineShaderTypeForResource {
-        name: String,
-    },
-    CompileError {
-        name: String,
-        message: String,
-    },
-    LinkError {
-        name: String,
-        message: String,
-    },
+    // ResourceLoad {
+    //     name: String,
+    //     inner: resources::ResourceError,
+    // },
+    // CanNotDetermineShaderTypeForResource {
+    //     name: String,
+    // },
+    CompileError { name: String, message: String },
+    LinkError { name: String, message: String },
 }
 
 impl std::fmt::Display for ShaderError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ShaderError::ResourceLoad { name, .. } => {
-                write!(f, "Could not load resource {}.", name)
-            }
-            ShaderError::CanNotDetermineShaderTypeForResource { name } => {
-                write!(f, "Could not guess shader type from resource {}.", name)
-            }
+            // ShaderError::ResourceLoad { name, .. } => {
+            //     write!(f, "Could not load resource {}.", name)
+            // }
+            // ShaderError::CanNotDetermineShaderTypeForResource { name } => {
+            //     write!(f, "Could not guess shader type from resource {}.", name)
+            // }
             ShaderError::CompileError { name, message } => {
                 write!(f, "Shader {} failed to compile: {}", name, message)
             }
@@ -46,42 +39,38 @@ impl std::fmt::Display for ShaderError {
 impl std::error::Error for ShaderError {}
 
 pub struct Shader {
-    gl: gl::Gl,
     id: gl::types::GLuint,
 }
 
 impl Shader {
-    pub fn from_res(gl: &gl::Gl, res: &Resources, name: &str) -> Result<Shader, ShaderError> {
-        const POSSIBLE_EXT: [(&str, gl::types::GLenum); 2] =
-            [(".vert", gl::VERTEX_SHADER), (".frag", gl::FRAGMENT_SHADER)];
+    // pub fn from_res(res: &Resources, name: &str) -> Result<Shader, ShaderError> {
+    //     const POSSIBLE_EXT: [(&str, gl::types::GLenum); 2] =
+    //         [(".vert", gl::VERTEX_SHADER), (".frag", gl::FRAGMENT_SHADER)];
 
-        let shader_kind = POSSIBLE_EXT
-            .iter()
-            .find(|&&(file_extension, _)| name.ends_with(file_extension))
-            .map(|&(_, kind)| kind)
-            .ok_or_else(|| ShaderError::CanNotDetermineShaderTypeForResource {
-                name: name.into(),
-            })?;
+    //     let shader_kind = POSSIBLE_EXT
+    //         .iter()
+    //         .find(|&&(file_extension, _)| name.ends_with(file_extension))
+    //         .map(|&(_, kind)| kind)
+    //         .ok_or_else(|| ShaderError::CanNotDetermineShaderTypeForResource {
+    //             name: name.into(),
+    //         })?;
 
-        let source = res
-            .load_cstring(name)
-            .map_err(|e| ShaderError::ResourceLoad {
-                name: name.into(),
-                inner: e,
-            })?;
+    //     let source = res
+    //         .load_cstring(name)
+    //         .map_err(|e| ShaderError::ResourceLoad {
+    //             name: name.into(),
+    //             inner: e,
+    //         })?;
 
-        Shader::from_source(gl, &source, shader_kind).map_err(|message| ShaderError::CompileError {
-            name: name.into(),
-            message,
-        })
-    }
-    pub fn from_source(
-        gl: &gl::Gl,
-        source: &CStr,
-        kind: gl::types::GLuint,
-    ) -> Result<Shader, String> {
-        let id = shader_from_source(&gl, source, kind)?;
-        Ok(Shader { gl: gl.clone(), id })
+    //     Shader::from_source(gl, &source, shader_kind).map_err(|message| ShaderError::CompileError {
+    //         name: name.into(),
+    //         message,
+    //     })
+    // }
+
+    pub fn from_source(source: &CStr, kind: gl::types::GLuint) -> Result<Shader, String> {
+        let id = shader_from_source(source, kind)?;
+        Ok(Shader { id })
     }
 
     pub fn id(&self) -> gl::types::GLuint {
@@ -92,70 +81,65 @@ impl Shader {
 impl Drop for Shader {
     fn drop(&mut self) {
         unsafe {
-            self.gl.DeleteShader(self.id);
+            gl::DeleteShader(self.id);
         }
     }
 }
 
 pub struct ShaderProgram {
-    gl: gl::Gl,
     id: gl::types::GLuint,
     uniform_location_cache: HashMap<String, i32>,
     texture: Option<Texture>,
 }
 
 impl ShaderProgram {
-    pub fn from_res(
-        gl: &gl::Gl,
-        res: &Resources,
-        name: &str,
-    ) -> Result<ShaderProgram, ShaderError> {
-        const POSSIBLE_EXT: [&str; 2] = [".vert", ".frag"];
+    // pub fn from_res(res: &Resources, name: &str) -> Result<ShaderProgram, ShaderError> {
+    //     const POSSIBLE_EXT: [&str; 2] = [".vert", ".frag"];
 
-        let resource_names = POSSIBLE_EXT
-            .iter()
-            .map(|file_extension| format!("{}{}", name, file_extension))
-            .collect::<Vec<String>>();
+    //     let resource_names = POSSIBLE_EXT
+    //         .iter()
+    //         .map(|file_extension| format!("{}{}", name, file_extension))
+    //         .collect::<Vec<String>>();
 
-        let shaders = resource_names
-            .iter()
-            .map(|resource_name| Shader::from_res(gl, res, resource_name))
-            .collect::<Result<Vec<Shader>, ShaderError>>()?;
+    //     let shaders = resource_names
+    //         .iter()
+    //         .map(|resource_name| Shader::from_res(res, resource_name))
+    //         .collect::<Result<Vec<Shader>, ShaderError>>()?;
 
-        ShaderProgram::from_shaders(gl, &shaders[..]).map_err(|message| ShaderError::LinkError {
-            name: name.into(),
-            message,
-        })
-    }
+    //     ShaderProgram::from_shaders(&shaders[..]).map_err(|message| ShaderError::LinkError {
+    //         name: name.into(),
+    //         message,
+    //     })
+    // }
 
-    pub fn from_shaders(gl: &gl::Gl, shaders: &[Shader]) -> Result<ShaderProgram, String> {
-        let program_id = unsafe { gl.CreateProgram() };
+    pub fn from_shaders(shaders: &[Shader]) -> Result<ShaderProgram, String> {
+        let program_id = unsafe { gl::CreateProgram() };
 
         for shader in shaders {
             unsafe {
-                gl.AttachShader(program_id, shader.id());
+                gl::AttachShader(program_id, shader.id());
             }
         }
 
         unsafe {
-            gl.LinkProgram(program_id);
+            gl::LinkProgram(program_id);
         }
 
         let mut success: gl::types::GLint = 1;
         unsafe {
-            gl.GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
+            gl::GetProgramiv(program_id, gl::LINK_STATUS, &mut success);
         }
 
         if success == 0 {
             let mut len: gl::types::GLint = 0;
             unsafe {
-                gl.GetProgramiv(program_id, gl::INFO_LOG_LENGTH, &mut len);
+                gl::GetProgramiv(program_id, gl::INFO_LOG_LENGTH, &mut len);
             }
 
             let error = create_whitespace_cstring_with_len(len as usize);
 
             unsafe {
-                gl.GetProgramInfoLog(
+                gl::GetProgramInfoLog(
                     program_id,
                     len,
                     std::ptr::null_mut(),
@@ -168,12 +152,11 @@ impl ShaderProgram {
 
         for shader in shaders {
             unsafe {
-                gl.DetachShader(program_id, shader.id());
+                gl::DetachShader(program_id, shader.id());
             }
         }
 
         Ok(ShaderProgram {
-            gl: gl.clone(),
             id: program_id,
             uniform_location_cache: HashMap::new(),
             texture: None,
@@ -187,35 +170,35 @@ impl ShaderProgram {
     pub fn bind(&self) {
         match &self.texture {
             Some(texture) => texture.bind(),
-            None => unsafe { self.gl.BindTexture(gl::TEXTURE_2D, 0) },
+            None => unsafe { gl::BindTexture(gl::TEXTURE_2D, 0) },
         }
         unsafe {
-            self.gl.UseProgram(self.id);
+            gl::UseProgram(self.id);
         }
     }
 
     pub fn set_uniform_matrix4(&mut self, name: String, value: &Matrix4<f32>) {
         unsafe {
             let name = self.get_uniform_location(name);
-            self.gl.UniformMatrix4fv(name, 1, gl::FALSE, value.as_ptr())
+            gl::UniformMatrix4fv(name, 1, gl::FALSE, value.as_ptr())
         }
     }
     pub fn set_uniform_bool(&mut self, name: String, value: bool) {
         unsafe {
             let name = self.get_uniform_location(name);
-            self.gl.Uniform1ui(name, value as u32)
+            gl::Uniform1ui(name, value as u32)
         }
     }
     pub fn set_uniform_float(&mut self, name: String, value: f32) {
         unsafe {
             let name = self.get_uniform_location(name);
-            self.gl.Uniform1f(name, value)
+            gl::Uniform1f(name, value)
         }
     }
     pub fn set_uniform_vector3(&mut self, name: String, value: &Vector3<f32>) {
         unsafe {
             let name = self.get_uniform_location(name);
-            self.gl.Uniform3f(name, value.x, value.y, value.z)
+            gl::Uniform3f(name, value.x, value.y, value.z)
         }
     }
     fn get_uniform_location(&mut self, name: String) -> i32 {
@@ -227,10 +210,10 @@ impl ShaderProgram {
             }
             None => {
                 unsafe {
-                    // TODO: refacto as_str.unwrap.as_ptr
-                    location = self
-                        .gl
-                        .GetUniformLocation(self.id, CString::new(name.as_str()).unwrap().as_ptr());
+                    location = gl::GetUniformLocation(
+                        self.id,
+                        CString::new(name.as_str()).unwrap().as_ptr(),
+                    );
                 }
                 self.uniform_location_cache.insert(name, location);
             }
@@ -242,39 +225,35 @@ impl ShaderProgram {
 impl Drop for ShaderProgram {
     fn drop(&mut self) {
         unsafe {
-            self.gl.DeleteProgram(self.id);
+            gl::DeleteProgram(self.id);
         }
     }
 }
 
-fn shader_from_source(
-    gl: &gl::Gl,
-    source: &CStr,
-    kind: gl::types::GLuint,
-) -> Result<gl::types::GLuint, String> {
-    let id = unsafe { gl.CreateShader(kind) };
+fn shader_from_source(source: &CStr, kind: gl::types::GLuint) -> Result<gl::types::GLuint, String> {
+    let id = unsafe { gl::CreateShader(kind) };
 
     unsafe {
-        gl.ShaderSource(id, 1, &source.as_ptr(), std::ptr::null());
-        gl.CompileShader(id);
+        gl::ShaderSource(id, 1, &source.as_ptr(), std::ptr::null());
+        gl::CompileShader(id);
     }
 
     let mut success: gl::types::GLint = 1;
     unsafe {
-        gl.GetShaderiv(id, gl::COMPILE_STATUS, &mut success);
+        gl::GetShaderiv(id, gl::COMPILE_STATUS, &mut success);
     }
 
     if success == 0 {
         let mut len: gl::types::GLint = 0;
 
         unsafe {
-            gl.GetShaderiv(id, gl::INFO_LOG_LENGTH, &mut len);
+            gl::GetShaderiv(id, gl::INFO_LOG_LENGTH, &mut len);
         }
 
         let error = create_whitespace_cstring_with_len(len as usize);
 
         unsafe {
-            gl.GetShaderInfoLog(
+            gl::GetShaderInfoLog(
                 id,
                 len,
                 std::ptr::null_mut(),
