@@ -1,5 +1,6 @@
 use cgmath::prelude::*;
 use cgmath::{Matrix4, PerspectiveFov, Rad, Vector3, Vector4};
+use palantir_lib::TCamera;
 
 pub struct Camera {
     pub fov: f32,
@@ -42,19 +43,6 @@ impl Camera {
         camera.set_focal_length(focal_length, sensor_size);
         camera
     }
-    pub fn view_matrix(&self) -> Matrix4<f32> {
-        self.zoom_matrix * self.rotatex_matrix * self.rotatey_matrix * self.target_matrix
-    }
-    pub fn projection_matrix(&self) -> Matrix4<f32> {
-        PerspectiveFov {
-            fovy: Rad(self.fov),
-            aspect: self.aspect,
-            near: self.near_clip,
-            far: self.far_clip,
-        }
-        .to_perspective()
-        .into()
-    }
     pub fn pan(&mut self, x: f32, y: f32) {
         let mut vector = Vector3::new(x, -y, 0.0);
         vector *= self.distance * 0.1;
@@ -89,5 +77,22 @@ impl Camera {
     }
     pub fn set_aspect_ratio(&mut self, aspect: f32) {
         self.aspect = aspect;
+    }
+}
+
+impl TCamera for Camera {
+    fn matrix(&self) -> Matrix4<f32> {
+        self.zoom_matrix * self.rotatex_matrix * self.rotatey_matrix * self.target_matrix
+    }
+
+    fn projection_matrix(&self) -> Matrix4<f32> {
+        PerspectiveFov {
+            fovy: Rad(self.fov),
+            aspect: self.aspect,
+            near: self.near_clip,
+            far: self.far_clip,
+        }
+        .to_perspective()
+        .into()
     }
 }

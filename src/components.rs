@@ -9,13 +9,15 @@ pub use self::primitives::*;
 // pub fn from_res(gl: &gl::Gl, res: &Resources, name: &str) -> Result<Self, Box<dyn Error>> {
 //     let path = res.resource_name_to_path(name);
 
+use crate::resources::Resources;
 use cgmath::{Vector2, Vector3};
-use palantir_lib::{Mesh, SubMesh, Texture, Vertex};
+use palantir_lib::{Mesh, ShaderProgram, SubMesh, Texture, Vertex};
+use std::cell::RefCell;
 use std::error::Error;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use tobj;
 
-pub fn load_obj(path: PathBuf) -> Result<Mesh, Box<dyn Error>> {
+pub fn load_obj(path: PathBuf, res: &Resources) -> Result<Mesh, Box<dyn Error>> {
     let (models, materials) = tobj::load_obj(path, true)?;
 
     let mut submeshes = Vec::<SubMesh>::new();
@@ -46,19 +48,20 @@ pub fn load_obj(path: PathBuf) -> Result<Mesh, Box<dyn Error>> {
     }
     let mut mesh = Mesh::new(submeshes);
 
-    // for material in materials {
-    //     let mut shader = ShaderProgram::from_res(&res, "shaders/lambert").unwrap();
-    //     shader.bind();
-    //     shader.set_uniform_vector3("u_color".to_string(), &Vector3::<f32>::new(1.0, 1.0, 1.0));
+    for material in materials {
+        let shader_path = res.resource_name_to_path("shaders/lambert.glsl");
+        let mut shader = ShaderProgram::from_path(shader_path).unwrap();
+        shader.bind();
+        shader.set_uniform_vector3("u_color".to_string(), &Vector3::<f32>::new(1.0, 1.0, 1.0));
 
-    //     let texture_path = material.diffuse_texture;
-    //     if texture_path != "" {
-    //         let full_path = res.resource_name_to_path(&texture_path.replace("res://", ""));
-    //         let texture = Texture::new(full_path);
-    //         shader.set_texture(texture);
-    //     }
+        let texture_path = material.diffuse_texture;
+        if texture_path != "" {
+            let full_path = res.resource_name_to_path(&texture_path.replace("res://", ""));
+            let texture = Texture::new(full_path);
+            shader.set_texture(texture);
+        }
 
-    //     mesh.shaders.push(RefCell::new(shader));
-    // }
+        mesh.shaders.push(RefCell::new(shader));
+    }
     Ok(mesh)
 }

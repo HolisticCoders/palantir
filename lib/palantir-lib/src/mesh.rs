@@ -1,11 +1,7 @@
-use crate::{
-    IndexBuffer, ShaderProgram, Texture, Vertex, VertexArray, VertexBuffer, VertexBufferLayout,
-};
+use crate::{IndexBuffer, ShaderProgram, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
 use cgmath::prelude::*;
-use cgmath::{Matrix4, Vector2, Vector3};
+use cgmath::Matrix4;
 use std::cell::RefCell;
-// use std::error::Error;
-// use tobj::load_obj;
 
 pub struct SubMesh {
     pub shader_index: Option<usize>,

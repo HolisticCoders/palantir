@@ -1,12 +1,9 @@
-use std::ffi;
-use std::fs;
-use std::io::{self, Read};
+use std::io;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub enum ResourceError {
     Io(io::Error),
-    FileContainsNil,
     FailedToGetExePath,
 }
 
@@ -19,7 +16,6 @@ impl From<io::Error> for ResourceError {
 impl std::fmt::Display for ResourceError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ResourceError::FileContainsNil => write!(f, "File contains nil byte."),
             ResourceError::FailedToGetExePath => {
                 write!(f, "Could not get application executable path.")
             }
@@ -44,21 +40,6 @@ impl Resources {
         Ok(Resources {
             root_path: exe_path.join(rel_path),
         })
-    }
-
-    pub fn load_cstring(&self, resource_name: &str) -> Result<ffi::CString, ResourceError> {
-        let mut file = fs::File::open(self.resource_name_to_path(resource_name))?;
-
-        // allocate buffer of the same size as file
-        let mut buffer: Vec<u8> = Vec::with_capacity(file.metadata()?.len() as usize + 1);
-        file.read_to_end(&mut buffer)?;
-
-        // check for nul byte
-        if buffer.iter().find(|i| **i == 0).is_some() {
-            return Err(ResourceError::FileContainsNil);
-        }
-
-        Ok(unsafe { ffi::CString::from_vec_unchecked(buffer) })
     }
 
     pub fn resource_name_to_path(&self, location: &str) -> PathBuf {

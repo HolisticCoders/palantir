@@ -3,35 +3,31 @@ use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector3};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 
 #[derive(Debug)]
 pub enum ShaderError {
-    // ResourceLoad {
-    //     name: String,
-    //     inner: resources::ResourceError,
-    // },
-    // CanNotDetermineShaderTypeForResource {
-    //     name: String,
-    // },
-    CompileError { name: String, message: String },
-    LinkError { name: String, message: String },
+    CompileError { path: PathBuf, message: String },
+    LinkError { path: PathBuf, message: String },
 }
 
 impl std::fmt::Display for ShaderError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            // ShaderError::ResourceLoad { name, .. } => {
-            //     write!(f, "Could not load resource {}.", name)
-            // }
-            // ShaderError::CanNotDetermineShaderTypeForResource { name } => {
-            //     write!(f, "Could not guess shader type from resource {}.", name)
-            // }
-            ShaderError::CompileError { name, message } => {
-                write!(f, "Shader {} failed to compile: {}", name, message)
-            }
-            ShaderError::LinkError { name, message } => {
-                write!(f, "Program {} failed to link shaders: {}", name, message)
-            }
+            ShaderError::CompileError { path, message } => write!(
+                f,
+                "Shader {} failed to compile: {}",
+                path.as_path().display().to_string(),
+                message
+            ),
+            ShaderError::LinkError { path, message } => write!(
+                f,
+                "Program {} failed to link shaders: {}",
+                path.as_path().display().to_string(),
+                message
+            ),
         }
     }
 }
@@ -112,6 +108,45 @@ impl ShaderProgram {
     //     })
     // }
 
+    pub fn from_path(path: PathBuf) -> Result<Self, ShaderError> {
+        let mut shader_sources = HashMap::new();
+        shader_sources.insert("vertex", String::new());
+        shader_sources.insert("fragment", String::new());
+        let file = File::open(path.clone()).expect("Couldn't open the file");
+
+        let mut shader_type = None;
+        for line in BufReader::new(file).lines() {
+            if let Ok(content) = line {
+                if content == "#vertex" {
+                    shader_type = Some("vertex")
+                } else if content == "#fragment" {
+                    shader_type = Some("fragment")
+                } else {
+                    match shader_type {
+                        Some(value) => {
+                            let current_content = shader_sources.get_mut(&value).unwrap();
+                            current_content.push_str(&content[..]);
+                            current_content.push_str("\n");
+                        }
+                        None => (),
+                    }
+                }
+            }
+        }
+        let vertex_source = shader_sources.get(&"vertex").unwrap();
+        let vertex_cstr = CString::new(&vertex_source[..]).unwrap();
+        let vertex_shader = Shader::from_source(&vertex_cstr, gl::VERTEX_SHADER).unwrap();
+
+        let fragment_source = shader_sources.get(&"fragment").unwrap();
+        let fragment_cstr = CString::new(&fragment_source[..]).unwrap();
+        let fragment_shader = Shader::from_source(&fragment_cstr, gl::FRAGMENT_SHADER).unwrap();
+
+        let shaders = [vertex_shader, fragment_shader];
+        ShaderProgram::from_shaders(&shaders).map_err(|message| ShaderError::LinkError {
+            path: path,
+            message,
+        })
+    }
     pub fn from_shaders(shaders: &[Shader]) -> Result<ShaderProgram, String> {
         let program_id = unsafe { gl::CreateProgram() };
 
