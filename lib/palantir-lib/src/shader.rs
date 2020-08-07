@@ -1,4 +1,3 @@
-use crate::Texture;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector3};
 use std::collections::HashMap;
@@ -39,31 +38,6 @@ pub struct Shader {
 }
 
 impl Shader {
-    // pub fn from_res(res: &Resources, name: &str) -> Result<Shader, ShaderError> {
-    //     const POSSIBLE_EXT: [(&str, gl::types::GLenum); 2] =
-    //         [(".vert", gl::VERTEX_SHADER), (".frag", gl::FRAGMENT_SHADER)];
-
-    //     let shader_kind = POSSIBLE_EXT
-    //         .iter()
-    //         .find(|&&(file_extension, _)| name.ends_with(file_extension))
-    //         .map(|&(_, kind)| kind)
-    //         .ok_or_else(|| ShaderError::CanNotDetermineShaderTypeForResource {
-    //             name: name.into(),
-    //         })?;
-
-    //     let source = res
-    //         .load_cstring(name)
-    //         .map_err(|e| ShaderError::ResourceLoad {
-    //             name: name.into(),
-    //             inner: e,
-    //         })?;
-
-    //     Shader::from_source(gl, &source, shader_kind).map_err(|message| ShaderError::CompileError {
-    //         name: name.into(),
-    //         message,
-    //     })
-    // }
-
     pub fn from_source(source: &CStr, kind: gl::types::GLuint) -> Result<Shader, String> {
         let id = shader_from_source(source, kind)?;
         Ok(Shader { id })
@@ -85,29 +59,9 @@ impl Drop for Shader {
 pub struct ShaderProgram {
     id: gl::types::GLuint,
     uniform_location_cache: HashMap<String, i32>,
-    texture: Option<Texture>,
 }
 
 impl ShaderProgram {
-    // pub fn from_res(res: &Resources, name: &str) -> Result<ShaderProgram, ShaderError> {
-    //     const POSSIBLE_EXT: [&str; 2] = [".vert", ".frag"];
-
-    //     let resource_names = POSSIBLE_EXT
-    //         .iter()
-    //         .map(|file_extension| format!("{}{}", name, file_extension))
-    //         .collect::<Vec<String>>();
-
-    //     let shaders = resource_names
-    //         .iter()
-    //         .map(|resource_name| Shader::from_res(res, resource_name))
-    //         .collect::<Result<Vec<Shader>, ShaderError>>()?;
-
-    //     ShaderProgram::from_shaders(&shaders[..]).map_err(|message| ShaderError::LinkError {
-    //         name: name.into(),
-    //         message,
-    //     })
-    // }
-
     pub fn from_path(path: PathBuf) -> Result<Self, ShaderError> {
         let mut shader_sources = HashMap::new();
         shader_sources.insert("vertex", String::new());
@@ -194,19 +148,10 @@ impl ShaderProgram {
         Ok(ShaderProgram {
             id: program_id,
             uniform_location_cache: HashMap::new(),
-            texture: None,
         })
     }
 
-    pub fn set_texture(&mut self, texture: Texture) {
-        self.set_uniform_bool("u_use_texture".to_string(), true);
-        self.texture = Some(texture);
-    }
     pub fn bind(&self) {
-        match &self.texture {
-            Some(texture) => texture.bind(),
-            None => unsafe { gl::BindTexture(gl::TEXTURE_2D, 0) },
-        }
         unsafe {
             gl::UseProgram(self.id);
         }

@@ -16,14 +16,9 @@ use std::time::Instant;
 fn main() {
     let mut app = Application::new(1280, 720).unwrap();
 
-    // TODO: Make the renderer work in a begin scene, submit and end scene way
-    // Also make it independent from the Camera and Light class (?)
-    // either by just passing matrices/vectors/whatever or by creating Traits
-    let default_shader_path = app.resources.resource_name_to_path("shaders/flat.glsl");
-    let mut default_shader = ShaderProgram::from_path(default_shader_path).unwrap();
-    default_shader.bind();
-    default_shader.set_uniform_vector3("u_color".to_string(), &Vector3::<f32>::new(1.0, 0.0, 1.0));
-    let renderer = Renderer::new(default_shader);
+    let lambert_shader_path = app.resources.resource_name_to_path("shaders/lambert.glsl");
+    let lambert_shader = ShaderProgram::from_path(lambert_shader_path).unwrap();
+    let renderer = Renderer::new(lambert_shader);
 
     let mut meshes = Vec::<Mesh>::new();
 

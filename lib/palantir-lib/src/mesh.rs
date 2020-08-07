@@ -1,19 +1,19 @@
-use crate::{IndexBuffer, ShaderProgram, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
+use crate::{IndexBuffer, Material, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
 use cgmath::prelude::*;
 use cgmath::Matrix4;
 use std::cell::RefCell;
 
 pub struct SubMesh {
-    pub shader_index: Option<usize>,
+    pub material_index: Option<usize>,
     vertex_buffer: VertexBuffer,
     layout: VertexBufferLayout,
     index_buffer: IndexBuffer,
     vertex_array: VertexArray,
 }
 impl SubMesh {
-    pub fn new(vertices: Vec<Vertex>, indices: Vec<u32>, shader_index: Option<usize>) -> Self {
+    pub fn new(vertices: Vec<Vertex>, indices: Vec<u32>, material_index: Option<usize>) -> Self {
         let mut submesh = SubMesh {
-            shader_index,
+            material_index,
             vertex_buffer: VertexBuffer::new(vertices),
             layout: VertexBufferLayout::new(),
             index_buffer: IndexBuffer::new(indices),
@@ -40,7 +40,7 @@ impl SubMesh {
 pub struct Mesh {
     pub submeshes: Vec<SubMesh>,
     pub matrix: Matrix4<f32>,
-    pub shaders: Vec<RefCell<ShaderProgram>>,
+    pub materials: Vec<RefCell<Material>>,
 }
 
 impl Mesh {
@@ -48,7 +48,7 @@ impl Mesh {
         Mesh {
             submeshes,
             matrix: Matrix4::identity(),
-            shaders: Vec::new(),
+            materials: Vec::new(),
         }
     }
 }

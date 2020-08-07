@@ -1,4 +1,5 @@
 mod index_buffer;
+mod material;
 mod mesh;
 mod objects;
 mod renderer;
@@ -9,6 +10,7 @@ mod vertex_array;
 mod vertex_buffer;
 
 pub use self::index_buffer::*;
+pub use self::material::*;
 pub use self::mesh::*;
 pub use self::objects::*;
 pub use self::renderer::*;

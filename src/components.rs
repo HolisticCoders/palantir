@@ -6,12 +6,9 @@ pub use self::camera::*;
 pub use self::light::*;
 pub use self::primitives::*;
 
-// pub fn from_res(gl: &gl::Gl, res: &Resources, name: &str) -> Result<Self, Box<dyn Error>> {
-//     let path = res.resource_name_to_path(name);
-
 use crate::resources::Resources;
 use cgmath::{Vector2, Vector3};
-use palantir_lib::{Mesh, ShaderProgram, SubMesh, Texture, Vertex};
+use palantir_lib::{Material, Mesh, SubMesh, Texture, Vertex};
 use std::cell::RefCell;
 use std::error::Error;
 use std::path::PathBuf;
@@ -49,19 +46,19 @@ pub fn load_obj(path: PathBuf, res: &Resources) -> Result<Mesh, Box<dyn Error>> 
     let mut mesh = Mesh::new(submeshes);
 
     for material in materials {
-        let shader_path = res.resource_name_to_path("shaders/lambert.glsl");
-        let mut shader = ShaderProgram::from_path(shader_path).unwrap();
-        shader.bind();
-        shader.set_uniform_vector3("u_color".to_string(), &Vector3::<f32>::new(1.0, 1.0, 1.0));
-
+        let texture: Option<Texture>;
         let texture_path = material.diffuse_texture;
         if texture_path != "" {
             let full_path = res.resource_name_to_path(&texture_path.replace("res://", ""));
-            let texture = Texture::new(full_path);
-            shader.set_texture(texture);
-        }
+            texture = Some(Texture::new(full_path));
+        } else {
+            texture = None;
+        };
 
-        mesh.shaders.push(RefCell::new(shader));
+        mesh.materials.push(RefCell::new(Material::new(
+            Vector3::<f32>::new(1.0, 1.0, 1.0),
+            texture,
+        )));
     }
     Ok(mesh)
 }

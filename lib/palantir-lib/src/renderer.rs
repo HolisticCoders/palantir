@@ -1,14 +1,17 @@
-use crate::{Mesh, ShaderProgram, TCamera, TLight};
+use crate::{Material, Mesh, ShaderProgram, TCamera, TLight};
+use cgmath::Vector3;
 use std::cell::RefCell;
 
 pub struct Renderer {
-    default_shader: RefCell<ShaderProgram>,
+    shader: RefCell<ShaderProgram>,
+    default_material: RefCell<Material>,
 }
 
 impl Renderer {
-    pub fn new(default_shader: ShaderProgram) -> Self {
+    pub fn new(shader: ShaderProgram) -> Self {
         Renderer {
-            default_shader: RefCell::new(default_shader),
+            shader: RefCell::new(shader),
+            default_material: RefCell::new(Material::new(Vector3::new(1.0, 0.0, 1.0), None)),
         }
     }
     pub fn clear(&self, r: f32, g: f32, b: f32) {
@@ -24,23 +27,24 @@ impl Renderer {
         light: &B,
         draw_type: u32,
     ) {
+        let mut shader = self.shader.borrow_mut();
         for submesh in &mesh.submeshes {
-            let mut shader;
-            if mesh.shaders.is_empty() {
-                shader = self.default_shader.borrow_mut();
+            let material;
+            if mesh.materials.is_empty() {
+                material = self.default_material.borrow_mut();
             } else {
-                match submesh.shader_index {
-                    Some(i) => shader = mesh.shaders[i].borrow_mut(),
-                    None => shader = self.default_shader.borrow_mut(),
+                match submesh.material_index {
+                    Some(i) => material = mesh.materials[i].borrow_mut(),
+                    None => material = self.default_material.borrow_mut(),
                 }
             }
             shader.bind();
+            material.send_to_shader(&mut shader);
 
             shader.set_uniform_matrix4(String::from("u_model"), &mesh.matrix);
             shader.set_uniform_matrix4(String::from("u_view"), &camera.matrix());
             shader.set_uniform_matrix4(String::from("u_projection"), &camera.projection_matrix());
 
-            // TODO: only set these on supported shaders
             shader.set_uniform_vector3(String::from("u_light_direction"), &light.direction());
             shader.set_uniform_vector3(String::from("u_light_color"), &light.color());
             shader.set_uniform_float(
