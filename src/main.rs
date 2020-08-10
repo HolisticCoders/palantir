@@ -1,46 +1,36 @@
 mod app;
 mod components;
 mod resources;
+mod scene;
 
 use app::Application;
 use cgmath::prelude::*;
-use cgmath::{Matrix4, Point3, Vector2, Vector3};
-use components::{load_obj, Camera, Light};
+use cgmath::{Matrix4, Vector2, Vector3};
+use components::{Camera, Light};
 use imgui::{im_str, Context, ImString};
-use palantir_lib::TCamera;
-use palantir_lib::{Mesh, Renderer, ShaderProgram};
+use palantir_lib::{Renderer, ShaderProgram, TCamera};
+use scene::Scene;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
 use std::time::Instant;
 
 fn main() {
     let mut app = Application::new(1280, 720).unwrap();
+    let (width, height) = app.window.size();
+    let aspect = width as f32 / height as f32;
+
+    let mut scene = Scene::new();
+    scene.camera_mut().set_aspect_ratio(aspect);
 
     let lambert_shader_path = app.resources.resource_name_to_path("shaders/lambert.glsl");
     let lambert_shader = ShaderProgram::from_path(lambert_shader_path).unwrap();
     let renderer = Renderer::new(lambert_shader);
 
-    let mut meshes = Vec::<Mesh>::new();
-
     let plane_path = app.resources.resource_name_to_path("meshes/plane.obj");
-    let plane = load_obj(plane_path, &app.resources).unwrap();
-    meshes.push(plane);
+    scene.load_obj(plane_path, &app.resources).unwrap();
 
     let obj_path = app.resources.resource_name_to_path("meshes/suzanne.obj");
-    let obj = load_obj(obj_path, &app.resources).unwrap();
-    meshes.push(obj);
-
-    let (width, height) = app.window.size();
-    let aspect = width as f32 / height as f32;
-
-    let mut camera = Camera::from_focal_length(50.0, 36.0, 0.01, 1000.0, aspect);
-
-    let mut light = Light::new();
-    light.set_matrix(Matrix4::look_at_dir(
-        Point3::new(0.0, 0.0, 0.0),
-        Vector3::new(1.0, -1.0, 1.0),
-        Vector3::unit_y(),
-    ));
+    scene.load_obj(obj_path, &app.resources).unwrap();
 
     let mut imgui = Context::create();
     imgui.set_ini_filename(None);
@@ -52,6 +42,7 @@ fn main() {
     let mut last_frame = Instant::now();
 
     'main: loop {
+        // EVENT HANDLING
         let mouse_state = MouseState::new(&app.events);
         for event in app.events.poll_iter() {
             imgui_sdl2.handle_event(&mut imgui, &event);
@@ -65,7 +56,7 @@ fn main() {
                     ..
                 } => unsafe {
                     gl::Viewport(0, 0, x, y);
-                    camera.set_aspect_ratio(x as f32 / y as f32);
+                    scene.camera_mut().set_aspect_ratio(x as f32 / y as f32);
                 },
                 Event::MouseMotion { xrel, yrel, .. } => {
                     const PAN_SENSITIVITY: f32 = 0.005;
@@ -75,8 +66,8 @@ fn main() {
                     if mouse_state.left() {
                         let y_angle = xrel as f32 * ORBIT_SENSITIVITY;
                         let x_angle = yrel as f32 * ORBIT_SENSITIVITY;
-                        camera.rotate(Vector3::unit_y(), y_angle);
-                        camera.rotate(Vector3::unit_x(), x_angle);
+                        scene.camera_mut().rotate(Vector3::unit_y(), y_angle);
+                        scene.camera_mut().rotate(Vector3::unit_x(), x_angle);
                     } else if mouse_state.right() {
                         let mouse_vector = Vector2::new(xrel as f32, yrel as f32);
                         let mut direction = mouse_vector.dot(Vector2::unit_x())
@@ -88,24 +79,35 @@ fn main() {
                         }
                         let zoom_amount = direction * mouse_vector.magnitude() * ZOOM_SENSITIVITY;
                         if !zoom_amount.is_nan() {
-                            camera.zoom(zoom_amount);
+                            scene.camera_mut().zoom(zoom_amount);
                         }
                     } else if mouse_state.middle() {
                         let x = xrel as f32 * PAN_SENSITIVITY;
                         let y = yrel as f32 * PAN_SENSITIVITY;
-                        camera.pan(x, y);
+                        scene.camera_mut().pan(x, y);
                     }
                 }
-                Event::MouseWheel { y, .. } => camera.zoom(y as f32),
+                Event::MouseWheel { y, .. } => scene.camera_mut().zoom(y as f32),
                 Event::KeyDown { keycode, .. } => match keycode {
                     //TODO: refacto to focus on selection
-                    Some(sdl2::keyboard::Keycode::F) => camera.focus(),
+                    Some(sdl2::keyboard::Keycode::F) => scene.camera_mut().focus(),
                     _ => (),
                 },
                 _ => {}
             }
         }
 
+        // RENDER SCENE
+        let light_matrix = scene.camera().matrix().inverse_transform().unwrap()
+            * Matrix4::from_translation(Vector3::new(-2.0, 2.0, 1.0));
+        scene.light_mut().set_matrix(light_matrix);
+
+        renderer.clear(0.1, 0.1, 0.1);
+        for mesh in scene.meshes() {
+            renderer.draw_mesh(&mesh, scene.camera(), scene.light(), gl::TRIANGLES);
+        }
+
+        // IMGUI STUFF
         imgui_sdl2.prepare_frame(imgui.io_mut(), &app.window, &app.events.mouse_state());
 
         let now = Instant::now();
@@ -115,24 +117,16 @@ fn main() {
 
         imgui.io_mut().delta_time = delta_s;
 
-        let ui = imgui.frame();
-
+        let debug_ui = imgui.frame();
         let fps = 1 as f32 / delta_s;
         let fps_str = format!("{}", fps);
-        ui.label_text(im_str!("FPS"), &ImString::new(fps_str));
+        debug_ui.label_text(&ImString::new(fps_str), im_str!("FPS"));
 
-        light.set_matrix(
-            camera.matrix().inverse_transform().unwrap()
-                * Matrix4::from_translation(Vector3::new(-2.0, 2.0, 1.0)),
-        );
+        let mesh_str = format!("{}", scene.meshes().len());
+        debug_ui.label_text(&ImString::new(mesh_str), im_str!("Mesh Count"));
 
-        renderer.clear(0.1, 0.1, 0.1);
-        for mesh in &meshes {
-            renderer.draw_mesh(&mesh, &camera, &light, gl::TRIANGLES);
-        }
-
-        imgui_sdl2.prepare_render(&ui, &app.window);
-        imgui_renderer.render(ui);
+        imgui_sdl2.prepare_render(&debug_ui, &app.window);
+        imgui_renderer.render(debug_ui);
 
         app.window.gl_swap_window();
     }
