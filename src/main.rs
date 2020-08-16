@@ -7,8 +7,8 @@ use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector2, Vector3};
 use components::{Camera, Light};
-use dialog::DialogBox;
 use imgui::{im_str, Context, ImString};
+use nfd::Response;
 use palantir_lib::{Renderer, ShaderProgram, TCamera};
 use scene::Scene;
 use sdl2::event::{Event, WindowEvent};
@@ -27,12 +27,6 @@ fn main() {
     let lambert_shader_path = app.resources.resource_name_to_path("shaders/lambert.glsl");
     let lambert_shader = ShaderProgram::from_path(lambert_shader_path).unwrap();
     let renderer = Renderer::new(lambert_shader);
-
-    let plane_path = app.resources.resource_name_to_path("meshes/plane.obj");
-    scene.load_obj(plane_path, &app.resources).unwrap();
-
-    let obj_path = app.resources.resource_name_to_path("meshes/suzanne.obj");
-    scene.load_obj(obj_path, &app.resources).unwrap();
 
     let mut imgui = Context::create();
     imgui.set_ini_filename(None);
@@ -133,20 +127,28 @@ fn main() {
             debug_ui.button(&ImString::new(import_button_label), import_button_size);
 
         if import_button_released {
-            let resources_path = app.resources.root_path();
-
-            let file_choice = dialog::FileSelection::new("Please select a file")
-                .title("Import Mesh")
-                .path(
-                    resources_path
+            let file_choice = nfd::dialog_multiple()
+                .filter("obj")
+                .default_path(
+                    app.resources
+                        .root_path()
                         .to_str()
                         .expect("Could not convert path buffer to string."),
                 )
-                .show()
-                .expect("Could not display dialog box");
+                .open();
 
-            if let Some(path) = file_choice {
-                scene.load_obj(PathBuf::from(path), &app.resources).unwrap();
+            if let Ok(file) = file_choice {
+                match file {
+                    Response::Okay(path) => {
+                        scene.load_obj(PathBuf::from(path), &app.resources).unwrap()
+                    }
+                    Response::OkayMultiple(paths) => {
+                        for path in paths {
+                            scene.load_obj(PathBuf::from(path), &app.resources).unwrap();
+                        }
+                    }
+                    Response::Cancel => (),
+                }
             }
         }
 
