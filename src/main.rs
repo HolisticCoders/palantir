@@ -7,11 +7,13 @@ use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector2, Vector3};
 use components::{Camera, Light};
+use dialog::DialogBox;
 use imgui::{im_str, Context, ImString};
 use palantir_lib::{Renderer, ShaderProgram, TCamera};
 use scene::Scene;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
+use std::path::PathBuf;
 use std::time::Instant;
 
 fn main() {
@@ -124,6 +126,29 @@ fn main() {
 
         let mesh_str = format!("{}", scene.meshes().len());
         debug_ui.label_text(&ImString::new(mesh_str), im_str!("Mesh Count"));
+
+        let import_button_label = "Import";
+        let import_button_size = [100.0, 25.0];
+        let import_button_released =
+            debug_ui.button(&ImString::new(import_button_label), import_button_size);
+
+        if import_button_released {
+            let resources_path = app.resources.root_path();
+
+            let file_choice = dialog::FileSelection::new("Please select a file")
+                .title("Import Mesh")
+                .path(
+                    resources_path
+                        .to_str()
+                        .expect("Could not convert path buffer to string."),
+                )
+                .show()
+                .expect("Could not display dialog box");
+
+            if let Some(path) = file_choice {
+                scene.load_obj(PathBuf::from(path), &app.resources).unwrap();
+            }
+        }
 
         imgui_sdl2.prepare_render(&debug_ui, &app.window);
         imgui_renderer.render(debug_ui);

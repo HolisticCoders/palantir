@@ -31,6 +31,10 @@ pub struct Resources {
 }
 
 impl Resources {
+    pub fn root_path(&self) -> PathBuf {
+        self.root_path.clone()
+    }
+
     pub fn from_relative_exe_path(rel_path: &Path) -> Result<Resources, ResourceError> {
         let exe_file_name =
             std::env::current_exe().map_err(|_| ResourceError::FailedToGetExePath)?;
