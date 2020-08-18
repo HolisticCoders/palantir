@@ -1,5 +1,6 @@
 mod app;
 mod components;
+mod gui;
 mod resources;
 mod scene;
 
@@ -7,13 +8,11 @@ use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector2, Vector3};
 use components::{Camera, Light};
-use imgui::{im_str, Context, Window};
-use nfd::Response;
+use imgui::Context;
 use palantir_lib::{Renderer, ShaderProgram, TCamera};
 use scene::Scene;
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
-use std::path::PathBuf;
 use std::time::Instant;
 
 fn main() {
@@ -116,41 +115,7 @@ fn main() {
         let ui = imgui.frame();
 
         let fps = 1 as f32 / delta_s;
-
-        Window::new(im_str!("Debug"))
-            .always_auto_resize(true)
-            .resizable(true)
-            .build(&ui, || {
-                ui.label_text(&im_str!("{}", fps as i32), im_str!("FPS"));
-                ui.label_text(&im_str!("{}", scene.meshes().len()), im_str!("Mesh Count"));
-
-                let import_button = ui.button(im_str!("Import"), [100.0, 25.0]);
-                if import_button {
-                    let file_choice = nfd::dialog_multiple()
-                        .filter("obj")
-                        .default_path(
-                            app.resources
-                                .root_path()
-                                .to_str()
-                                .expect("Could not convert path buffer to string."),
-                        )
-                        .open();
-
-                    if let Ok(file) = file_choice {
-                        match file {
-                            Response::Okay(path) => {
-                                scene.load_obj(PathBuf::from(path), &app.resources).unwrap()
-                            }
-                            Response::OkayMultiple(paths) => {
-                                for path in paths {
-                                    scene.load_obj(PathBuf::from(path), &app.resources).unwrap();
-                                }
-                            }
-                            Response::Cancel => (),
-                        }
-                    }
-                }
-            });
+        gui::debug_ui(&ui, fps as i32, &mut scene, &app);
 
         imgui_sdl2.prepare_render(&ui, &app.window);
         imgui_renderer.render(ui);
