@@ -1,8 +1,7 @@
 mod camera;
 mod light;
-mod primitives;
+mod transform;
 
 pub use self::camera::*;
 pub use self::light::*;
-pub use self::primitives::*;
-
+pub use self::transform::*;

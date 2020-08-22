@@ -1,13 +1,37 @@
+use crate::components::{Camera, Light};
 use crate::resources::Resources;
-use crate::{Camera, Light};
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
 use palantir_lib::{Material, Mesh, SubMesh, Texture, Vertex};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::error::Error;
 use std::path::PathBuf;
 use tobj;
+use uuid::Uuid;
 
+pub struct Node {
+    uuid: Uuid,
+    pub parent: Option<Uuid>,
+    pub children: Vec<Uuid>,
+    pub name: String,
+}
+
+impl Node {
+    fn new(uuid: Uuid, name: String, parent: Option<Uuid>) -> Self {
+        Node {
+            uuid,
+            name,
+            parent,
+            children: Vec::new(),
+        }
+    }
+    pub fn uuid(&self) -> Uuid {
+        self.uuid.clone()
+    }
+}
 pub struct Scene {
+    nodes: HashMap<Uuid, Node>,
+    root_node: Uuid,
     meshes: Vec<Mesh>,
     camera: Camera,
     light: Light,
@@ -23,11 +47,53 @@ impl Scene {
             Vector3::unit_y(),
         ));
 
+        let mut nodes = HashMap::new();
+        let root_id = Uuid::new_v4();
+        let root_node = Node::new(root_id, "Root".to_string(), None);
+        nodes.insert(root_id, root_node);
+
         Scene {
+            nodes,
+            root_node: root_id,
             meshes: Vec::new(),
             camera,
             light,
         }
+    }
+}
+// Nodes stuff
+impl Scene {
+    pub fn new_node(&mut self, name: String, parent: Option<Uuid>) -> Uuid {
+        let mut parent = parent; // shadow parent into a mutable version of itself
+        if let None = parent {
+            parent = Some(self.root_node)
+        }
+
+        let new_node_id = Uuid::new_v4();
+
+        if let Some(id) = parent {
+            let parent_node = self.node_mut(&id);
+            if let Some(node) = parent_node {
+                node.children.push(new_node_id)
+            }
+        }
+
+        self.nodes
+            .insert(new_node_id, Node::new(new_node_id.clone(), name, parent));
+        new_node_id
+    }
+    pub fn nodes(&self) -> &HashMap<Uuid, Node> {
+        &self.nodes
+    }
+
+    pub fn root_node(&self) -> &Node {
+        self.nodes.get(&self.root_node).unwrap()
+    }
+    pub fn node(&self, uuid: &Uuid) -> Option<&Node> {
+        self.nodes.get(uuid)
+    }
+    pub fn node_mut(&mut self, uuid: &Uuid) -> Option<&mut Node> {
+        self.nodes.get_mut(uuid)
     }
 }
 
@@ -60,6 +126,7 @@ impl Scene {
         self.meshes.push(mesh);
     }
     pub fn load_obj(&mut self, path: PathBuf, res: &Resources) -> Result<(), Box<dyn Error>> {
+        let name = String::from(path.file_name().unwrap().to_str().unwrap());
         let (models, materials) = tobj::load_obj(path, true)?;
 
         let mut submeshes = Vec::<SubMesh>::new();
@@ -90,6 +157,7 @@ impl Scene {
             submeshes.push(submesh);
         }
         let mut mesh = Mesh::new(submeshes);
+        mesh.name = name;
 
         for material in materials {
             let texture: Option<Texture>;

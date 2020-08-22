@@ -38,6 +38,7 @@ impl SubMesh {
 }
 
 pub struct Mesh {
+    pub name: String,
     pub submeshes: Vec<SubMesh>,
     pub matrix: Matrix4<f32>,
     pub materials: Vec<RefCell<Material>>,
@@ -46,6 +47,7 @@ pub struct Mesh {
 impl Mesh {
     pub fn new(submeshes: Vec<SubMesh>) -> Self {
         Mesh {
+            name: String::new(),
             submeshes,
             matrix: Matrix4::identity(),
             materials: Vec::new(),

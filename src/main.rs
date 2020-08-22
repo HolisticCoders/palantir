@@ -7,13 +7,44 @@ mod scene;
 use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector2, Vector3};
-use components::{Camera, Light};
 use imgui::Context;
 use palantir_lib::{Renderer, ShaderProgram, TCamera};
-use scene::Scene;
+use scene::{Node, Scene};
 use sdl2::event::{Event, WindowEvent};
 use sdl2::mouse::MouseState;
 use std::time::Instant;
+
+use uuid::Uuid;
+
+#[derive(Clone)]
+pub struct State {
+    selection: Vec<Uuid>,
+}
+
+impl State {
+    pub fn new() -> Self {
+        State {
+            selection: Vec::new(),
+        }
+    }
+    pub fn select(&mut self, node_id: Uuid, replace: bool) {
+        if replace {
+            self.selection = vec![node_id];
+        } else {
+            if !self.selection.contains(&node_id) {
+                self.selection.push(node_id)
+            }
+        }
+    }
+    pub fn deselect(&mut self, node_id: Uuid) {
+        if let Some(index) = self.selection.iter().position(|&r| r == node_id) {
+            self.selection.remove(index);
+        }
+    }
+    pub fn is_selected(&self, node_id: &Uuid) -> bool {
+        self.selection.contains(&node_id)
+    }
+}
 
 fn main() {
     let mut app = Application::new(1280, 720).unwrap();
@@ -22,6 +53,8 @@ fn main() {
 
     let mut scene = Scene::new();
     scene.camera_mut().set_aspect_ratio(aspect);
+
+    let mut state = State::new();
 
     let lambert_shader_path = app.resources.resource_name_to_path("shaders/lambert.glsl");
     let lambert_shader = ShaderProgram::from_path(lambert_shader_path).unwrap();
@@ -35,6 +68,11 @@ fn main() {
         imgui_opengl_renderer::Renderer::new(&mut imgui, |s| app.video.gl_get_proc_address(s) as _);
 
     let mut last_frame = Instant::now();
+
+    let node1 = scene.new_node(String::from("Node 01"), None);
+    let node2 = scene.new_node(String::from("Node 02"), Some(node1));
+    let node3 = scene.new_node(String::from("Node 03"), Some(node2));
+    scene.new_node(String::from("Node 04"), Some(node1));
 
     'main: loop {
         // EVENT HANDLING
@@ -115,7 +153,8 @@ fn main() {
         let ui = imgui.frame();
 
         let fps = 1 as f32 / delta_s;
-        gui::debug_ui(&ui, fps as i32, &mut scene, &app);
+        gui::debug_ui(&ui, &mut scene, &app, fps as i32);
+        state = gui::outliner(&ui, &scene, state);
 
         imgui_sdl2.prepare_render(&ui, &app.window);
         imgui_renderer.render(ui);

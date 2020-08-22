@@ -21,3 +21,4 @@ rand = "0.7.3"
 sdl2 = {version = "0.34.2", features = ["bundled", "static-link"]}
 tobj = "2.0.2"
 nfd = "0.0.4"
+uuid = { version = "0.8.1", features = ["serde", "v4"] }
