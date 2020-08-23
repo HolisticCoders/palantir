@@ -1,7 +1,7 @@
 use crate::{ShaderProgram, Texture};
 use cgmath::Vector3;
-use std::cell::RefMut;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Material {
     diffuse: Vector3<f32>,
     diffuse_texture: Option<Texture>,
@@ -14,7 +14,7 @@ impl Material {
             diffuse_texture,
         }
     }
-    pub fn send_to_shader(&self, shader: &mut RefMut<ShaderProgram>) {
+    pub fn send_to_shader(&self, shader: &mut ShaderProgram) {
         shader.set_uniform_vector3(String::from("material.diffuse"), &self.diffuse);
         match &self.diffuse_texture {
             Some(texture) => {

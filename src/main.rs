@@ -3,11 +3,13 @@ mod components;
 mod resources;
 mod scene;
 
+use crate::components::{MeshComponent, TransformComponent};
 use app::Application;
 use cgmath::prelude::*;
 use cgmath::{Matrix4, Vector2, Vector3};
 use components::{Camera, Light};
 use imgui::{im_str, Context, Window};
+use legion::prelude::*;
 use nfd::Response;
 use palantir_lib::{Renderer, ShaderProgram, TCamera};
 use scene::Scene;
@@ -21,12 +23,15 @@ fn main() {
     let (width, height) = app.window.size();
     let aspect = width as f32 / height as f32;
 
+    let universe = Universe::new();
+    let mut world = universe.create_world();
+
     let mut scene = Scene::new();
     scene.camera_mut().set_aspect_ratio(aspect);
 
     let lambert_shader_path = app.resources.resource_name_to_path("shaders/lambert.glsl");
     let lambert_shader = ShaderProgram::from_path(lambert_shader_path).unwrap();
-    let renderer = Renderer::new(lambert_shader);
+    let mut renderer = Renderer::new(lambert_shader);
 
     let mut imgui = Context::create();
     imgui.set_ini_filename(None);
@@ -99,8 +104,16 @@ fn main() {
         scene.light_mut().set_matrix(light_matrix);
 
         renderer.clear(0.1, 0.1, 0.1);
-        for mesh in scene.meshes() {
-            renderer.draw_mesh(&mesh, scene.camera(), scene.light(), gl::TRIANGLES);
+
+        let render_meshes_query = <(Read<TransformComponent>, Read<MeshComponent>)>::query();
+        for (transform, mesh) in render_meshes_query.iter(&mut world) {
+            renderer.draw_mesh(
+                &transform.matrix,
+                &mesh.mesh,
+                scene.camera(),
+                scene.light(),
+                gl::TRIANGLES,
+            );
         }
 
         // IMGUI STUFF
@@ -122,7 +135,10 @@ fn main() {
             .resizable(true)
             .build(&ui, || {
                 ui.label_text(&im_str!("{}", fps as i32), im_str!("FPS"));
-                ui.label_text(&im_str!("{}", scene.meshes().len()), im_str!("Mesh Count"));
+                ui.label_text(
+                    &im_str!("{}", render_meshes_query.iter(&world).count()),
+                    im_str!("Mesh Count"),
+                );
 
                 let import_button = ui.button(im_str!("Import"), [100.0, 25.0]);
                 if import_button {
@@ -139,11 +155,45 @@ fn main() {
                     if let Ok(file) = file_choice {
                         match file {
                             Response::Okay(path) => {
-                                scene.load_obj(PathBuf::from(path), &app.resources).unwrap()
+                                world.insert(
+                                    (),
+                                    (0..1).map(|_| {
+                                        (
+                                            TransformComponent {
+                                                matrix: Matrix4::identity(),
+                                            },
+                                            MeshComponent {
+                                                mesh: scene
+                                                    .load_obj(
+                                                        PathBuf::from(path.clone()),
+                                                        &app.resources,
+                                                    )
+                                                    .expect("Error loading mesh."),
+                                            },
+                                        )
+                                    }),
+                                );
                             }
                             Response::OkayMultiple(paths) => {
                                 for path in paths {
-                                    scene.load_obj(PathBuf::from(path), &app.resources).unwrap();
+                                    world.insert(
+                                        (),
+                                        (0..1).map(|_| {
+                                            (
+                                                TransformComponent {
+                                                    matrix: Matrix4::identity(),
+                                                },
+                                                MeshComponent {
+                                                    mesh: scene
+                                                        .load_obj(
+                                                            PathBuf::from(path.clone()),
+                                                            &app.resources,
+                                                        )
+                                                        .expect("Error loading mesh."),
+                                                },
+                                            )
+                                        }),
+                                    );
                                 }
                             }
                             Response::Cancel => (),

@@ -2,10 +2,11 @@ use cgmath::prelude::*;
 use cgmath::{Matrix4, PerspectiveFov, Rad, Vector3, Vector4};
 use palantir_lib::TCamera;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Camera {
-    pub fov: f32,
-    pub near_clip: f32,
-    pub far_clip: f32,
+    fov: f32,
+    near_clip: f32,
+    far_clip: f32,
     target_matrix: Matrix4<f32>,
     zoom_matrix: Matrix4<f32>,
     rotatey_matrix: Matrix4<f32>,

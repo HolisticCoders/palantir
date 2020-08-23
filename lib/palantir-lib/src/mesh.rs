@@ -1,8 +1,7 @@
 use crate::{IndexBuffer, Material, Vertex, VertexArray, VertexBuffer, VertexBufferLayout};
-use cgmath::prelude::*;
-use cgmath::Matrix4;
-use std::cell::RefCell;
+use std::sync::Arc;
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct SubMesh {
     pub material_index: Option<usize>,
     vertex_buffer: VertexBuffer,
@@ -10,6 +9,7 @@ pub struct SubMesh {
     index_buffer: IndexBuffer,
     vertex_array: VertexArray,
 }
+
 impl SubMesh {
     pub fn new(vertices: Vec<Vertex>, indices: Vec<u32>, material_index: Option<usize>) -> Self {
         let mut submesh = SubMesh {
@@ -37,17 +37,16 @@ impl SubMesh {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Mesh {
     pub submeshes: Vec<SubMesh>,
-    pub matrix: Matrix4<f32>,
-    pub materials: Vec<RefCell<Material>>,
+    pub materials: Vec<Arc<Material>>,
 }
 
 impl Mesh {
     pub fn new(submeshes: Vec<SubMesh>) -> Self {
         Mesh {
             submeshes,
-            matrix: Matrix4::identity(),
             materials: Vec::new(),
         }
     }

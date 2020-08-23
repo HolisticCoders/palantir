@@ -1,5 +1,6 @@
 use gl;
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct IndexBuffer {
     pub count: u32,
     id: u32,

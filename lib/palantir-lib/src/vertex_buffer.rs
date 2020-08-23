@@ -1,14 +1,13 @@
 use crate::vertex::Vertex;
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct VertexBuffer {
     id: u32,
 }
 
 impl VertexBuffer {
     pub fn new(vertices: Vec<Vertex>) -> Self {
-        let mut buffer = VertexBuffer {
-            id: 0,
-        };
+        let mut buffer = VertexBuffer { id: 0 };
         unsafe {
             gl::GenBuffers(1, &mut buffer.id);
             gl::BindBuffer(gl::ARRAY_BUFFER, buffer.id);
@@ -34,12 +33,14 @@ impl Drop for VertexBuffer {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct VertexBufferElement {
     pub gl_type: u32,
     pub gl_size: u32,
     pub count: u32,
     pub normalized: u8,
 }
+#[derive(Clone, Debug, PartialEq)]
 pub struct VertexBufferLayout {
     pub stride: u32,
     pub elements: Vec<VertexBufferElement>,

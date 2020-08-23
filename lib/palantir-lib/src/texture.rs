@@ -2,6 +2,7 @@ use image::GenericImageView;
 use std::os::raw::c_void;
 use std::path::PathBuf;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Texture {
     id: u32,
     height: i32,

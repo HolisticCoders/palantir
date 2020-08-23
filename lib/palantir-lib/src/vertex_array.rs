@@ -1,5 +1,6 @@
 use crate::vertex_buffer::{VertexBuffer, VertexBufferLayout};
 
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct VertexArray {
     id: u32,
 }

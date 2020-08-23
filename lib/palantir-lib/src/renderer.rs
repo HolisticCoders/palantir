@@ -1,17 +1,17 @@
 use crate::{Material, Mesh, ShaderProgram, TCamera, TLight};
-use cgmath::Vector3;
-use std::cell::RefCell;
+use cgmath::{Matrix4, Vector3};
+use std::sync::Arc;
 
 pub struct Renderer {
-    shader: RefCell<ShaderProgram>,
-    default_material: RefCell<Material>,
+    shader: ShaderProgram,
+    default_material: Arc<Material>,
 }
 
 impl Renderer {
     pub fn new(shader: ShaderProgram) -> Self {
         Renderer {
-            shader: RefCell::new(shader),
-            default_material: RefCell::new(Material::new(Vector3::new(1.0, 0.0, 1.0), None)),
+            shader,
+            default_material: Arc::new(Material::new(Vector3::new(1.0, 0.0, 1.0), None)),
         }
     }
     pub fn clear(&self, r: f32, g: f32, b: f32) {
@@ -21,37 +21,43 @@ impl Renderer {
         }
     }
     pub fn draw_mesh<A: TCamera, B: TLight>(
-        &self,
+        &mut self,
+        matrix: &Matrix4<f32>,
         mesh: &Mesh,
         camera: &A,
         light: &B,
         draw_type: u32,
     ) {
-        let mut shader = self.shader.borrow_mut();
         for submesh in &mesh.submeshes {
             let material;
             if mesh.materials.is_empty() {
-                material = self.default_material.borrow_mut();
+                material = Arc::clone(&self.default_material);
             } else {
                 match submesh.material_index {
-                    Some(i) => material = mesh.materials[i].borrow_mut(),
-                    None => material = self.default_material.borrow_mut(),
+                    Some(i) => material = Arc::clone(&mesh.materials[i]),
+                    None => material = Arc::clone(&self.default_material),
                 }
             }
-            shader.bind();
-            material.send_to_shader(&mut shader);
+            self.shader.bind();
+            material.send_to_shader(&mut self.shader);
 
-            shader.set_uniform_matrix4(String::from("u_model"), &mesh.matrix);
-            shader.set_uniform_matrix4(String::from("u_view"), &camera.matrix());
-            shader.set_uniform_matrix4(String::from("u_projection"), &camera.projection_matrix());
+            self.shader
+                .set_uniform_matrix4(String::from("u_model"), &matrix);
+            self.shader
+                .set_uniform_matrix4(String::from("u_view"), &camera.matrix());
+            self.shader
+                .set_uniform_matrix4(String::from("u_projection"), &camera.projection_matrix());
 
-            shader.set_uniform_vector3(String::from("u_light_direction"), &light.direction());
-            shader.set_uniform_vector3(String::from("u_light_color"), &light.color());
-            shader.set_uniform_float(
+            self.shader
+                .set_uniform_vector3(String::from("u_light_direction"), &light.direction());
+            self.shader
+                .set_uniform_vector3(String::from("u_light_color"), &light.color());
+            self.shader.set_uniform_float(
                 String::from("u_light_ambient_strength"),
                 light.ambient_strength(),
             );
-            shader.set_uniform_float(String::from("u_light_power"), light.power());
+            self.shader
+                .set_uniform_float(String::from("u_light_power"), light.power());
 
             submesh.vertex_array().bind();
             submesh.index_buffer().bind();

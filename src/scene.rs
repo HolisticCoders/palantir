@@ -2,13 +2,12 @@ use crate::resources::Resources;
 use crate::{Camera, Light};
 use cgmath::{Matrix4, Point3, Vector2, Vector3};
 use palantir_lib::{Material, Mesh, SubMesh, Texture, Vertex};
-use std::cell::RefCell;
 use std::error::Error;
 use std::path::PathBuf;
+use std::sync::Arc;
 use tobj;
 
 pub struct Scene {
-    meshes: Vec<Mesh>,
     camera: Camera,
     light: Light,
 }
@@ -23,11 +22,7 @@ impl Scene {
             Vector3::unit_y(),
         ));
 
-        Scene {
-            meshes: Vec::new(),
-            camera,
-            light,
-        }
+        Scene { camera, light }
     }
 }
 
@@ -53,13 +48,7 @@ impl Scene {
 
 // Meshes stuff
 impl Scene {
-    pub fn meshes(&self) -> &Vec<Mesh> {
-        &self.meshes
-    }
-    fn add_mesh(&mut self, mesh: Mesh) {
-        self.meshes.push(mesh);
-    }
-    pub fn load_obj(&mut self, path: PathBuf, res: &Resources) -> Result<(), Box<dyn Error>> {
+    pub fn load_obj(&mut self, path: PathBuf, res: &Resources) -> Result<Mesh, Box<dyn Error>> {
         let (models, materials) = tobj::load_obj(path, true)?;
 
         let mut submeshes = Vec::<SubMesh>::new();
@@ -89,7 +78,10 @@ impl Scene {
             let submesh = SubMesh::new(vertices, indices, obj_mesh.material_id);
             submeshes.push(submesh);
         }
-        let mut mesh = Mesh::new(submeshes);
+        let mut mesh = Mesh {
+            submeshes,
+            materials: Vec::new(),
+        };
 
         for material in materials {
             let texture: Option<Texture>;
@@ -101,12 +93,11 @@ impl Scene {
                 texture = None;
             };
 
-            mesh.materials.push(RefCell::new(Material::new(
+            mesh.materials.push(Arc::new(Material::new(
                 Vector3::<f32>::new(1.0, 1.0, 1.0),
                 texture,
             )));
         }
-        self.add_mesh(mesh);
-        Ok(())
+        Ok(mesh)
     }
 }
